@@ -1,0 +1,15 @@
+[package]
+name = "splits-io-api"
+version = "0.1.0"
+authors = ["Christopher Serr <christopher.serr@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+hyper = { git = "https://github.com/hyperium/hyper" }
+hyper-tls = { git = "https://github.com/hyperium/hyper-tls" }
+snafu = "0.4.4"
+serde = { version = "1.0.99", features = ["derive"] }
+uuid = { version = "0.7.4", features = ["serde"] }
+url = "2.1.0"
+serde_json = "1.0.40"
+futures-preview = "0.3.0-alpha.17"
