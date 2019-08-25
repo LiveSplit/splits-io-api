@@ -3,6 +3,12 @@ name = "splits-io-api"
 version = "0.1.0"
 authors = ["Christopher Serr <christopher.serr@gmail.com>"]
 edition = "2018"
+documentation = "https://docs.rs/splits-io-api/"
+repository = "https://github.com/LiveSplit/split-io-api"
+license = "Apache-2.0/MIT"
+description = "Bindings to the splits.io API for Rust."
+readme = "README.md"
+keywords = ["splits.io", "speedrun", "livesplit", "web", "async"]
 
 [dependencies]
 hyper = { git = "https://github.com/hyperium/hyper" }
