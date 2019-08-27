@@ -1,0 +1,75 @@
+name: Rust
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - i686-unknown-linux-gnu
+          - x86_64-unknown-linux-gnu
+          - i686-pc-windows-msvc
+          - i686-pc-windows-gnu
+          - x86_64-pc-windows-msvc
+          - x86_64-pc-windows-gnu
+          # - i686-apple-darwin
+          - x86_64-apple-darwin
+        include:
+        - target: i686-unknown-linux-gnu
+          os: ubuntu-latest
+          cargo_dir: ''
+          toolchain: nightly-i686-unknown-linux-gnu
+        - target: x86_64-unknown-linux-gnu
+          os: ubuntu-latest
+          cargo_dir: ''
+          toolchain: nightly
+        - target: i686-pc-windows-msvc
+          os: windows-latest
+          cargo_dir: ''
+          toolchain: nightly
+        - target: i686-pc-windows-gnu
+          os: windows-latest
+          cargo_dir: ''
+          toolchain: nightly-i686-pc-windows-gnu
+        - target: x86_64-pc-windows-msvc
+          os: windows-latest
+          cargo_dir: ''
+          toolchain: nightly
+        - target: x86_64-pc-windows-gnu
+          os: windows-latest
+          cargo_dir: ''
+          toolchain: nightly-x86_64-pc-windows-gnu
+        # i686 macOS is deprecated
+        # - target: i686-apple-darwin
+        #   os: macOS-latest
+        #   cargo_dir: '$HOME/.cargo/bin/'
+        #   toolchain: nightly-i686-apple-darwin
+        - target: x86_64-apple-darwin
+          os: macOS-latest
+          cargo_dir: '$HOME/.cargo/bin/'
+          toolchain: nightly
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Install gcc-multilib
+      if: matrix.target == 'i686-unknown-linux-gnu'
+      run: sudo apt-get install -y --no-install-recommends g++-multilib
+    - name: Install Rust Compiler
+      if: matrix.os == 'macOS-latest'
+      run: curl https://sh.rustup.rs -sSf | sh -s -- -y
+    - name: Set up toolchain
+      run: ${{ matrix.cargo_dir }}rustup toolchain install ${{ matrix.toolchain }}
+    - name: Set up target
+      run: ${{ matrix.cargo_dir }}rustup target install ${{ matrix.target }} --toolchain ${{ matrix.toolchain }}
+    - name: Build
+      run: ${{ matrix.cargo_dir }}cargo +${{ matrix.toolchain }} build --target ${{ matrix.target }}
+      env:
+        RUSTFLAGS: -D warnings
+    - name: Run tests
+      run: ${{ matrix.cargo_dir }}cargo +${{ matrix.toolchain }} test --target ${{ matrix.target }}
+      env:
+        RUSTFLAGS: -D warnings
