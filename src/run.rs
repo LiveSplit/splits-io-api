@@ -5,7 +5,7 @@ use snafu::ResultExt;
 use std::io::{self, Write};
 use url::Url;
 
-pub async fn download_by_id(client: &Client, id: &str) -> Result<Chunk, Error> {
+pub async fn download(client: &Client, id: &str) -> Result<Chunk, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/runs/").unwrap();
     url.path_segments_mut().unwrap().push(id);
 
@@ -21,7 +21,7 @@ pub async fn download_by_id(client: &Client, id: &str) -> Result<Chunk, Error> {
     response.into_body().try_concat().await.context(Download)
 }
 
-pub async fn get_by_id(client: &Client, id: &str, historic: bool) -> Result<Run, Error> {
+pub async fn get(client: &Client, id: &str, historic: bool) -> Result<Run, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/runs/").unwrap();
     url.path_segments_mut().unwrap().push(id);
     if historic {
@@ -126,7 +126,7 @@ pub async fn upload_lazy<E: std::error::Error>(
     )
     .unwrap();
 
-    let response = get_response(
+    get_response(
         client,
         Request::post(&*uri)
             .header(
@@ -137,9 +137,6 @@ pub async fn upload_lazy<E: std::error::Error>(
             .unwrap(),
     )
     .await?;
-
-    let response = response.into_body().try_concat().await.unwrap();
-    let response = String::from_utf8_lossy(&response);
 
     Ok(UploadedRun { id, claim_token })
 }

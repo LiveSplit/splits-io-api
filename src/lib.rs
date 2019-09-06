@@ -1,8 +1,6 @@
-#![feature(async_await)]
-
 use futures::prelude::*;
 use hyper::{http::header::AUTHORIZATION, Body, Request, Response, StatusCode};
-use hyper_tls::HttpsConnector;
+use hyper_rustls::HttpsConnector;
 use snafu::ResultExt;
 
 pub mod category;
@@ -23,7 +21,7 @@ pub struct Client {
 
 impl Client {
     pub fn new() -> Self {
-        let https = HttpsConnector::new(4).unwrap();
+        let https = HttpsConnector::new();
         let client = hyper::Client::builder().build::<_, hyper::Body>(https);
         Client {
             client,
@@ -60,8 +58,8 @@ async fn get_response(
 ) -> Result<Response<Body>, Error> {
     // TODO: Only for requests that need it.
     if let Some(access_token) = &client.access_token {
+        // TODO: Don't ignore error.
         if let Ok(access_token) = access_token.parse() {
-            // TODO: Don't ignore error.
             request.headers_mut().insert(AUTHORIZATION, access_token);
         }
     }
