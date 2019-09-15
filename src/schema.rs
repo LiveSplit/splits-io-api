@@ -68,10 +68,10 @@ pub struct RunItemHistories {
 pub struct Run {
     #[serde(default)]
     pub attempts: Option<u32>,
-    pub category: Category,
+    pub category: Option<Category>,
     pub created_at: Box<str>,
     pub default_timing: Box<str>,
-    pub game: Game,
+    pub game: Option<Game>,
     #[serde(default)]
     pub gametime_duration_ms: Option<f64>,
     #[serde(default)]
