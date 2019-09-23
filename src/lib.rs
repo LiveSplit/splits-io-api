@@ -4,6 +4,7 @@ use hyper_rustls::HttpsConnector;
 use snafu::ResultExt;
 
 pub mod category;
+pub mod event;
 pub mod game;
 pub mod race;
 pub mod run;
@@ -52,7 +53,7 @@ pub enum Error {
     Json { source: serde_json::Error },
 }
 
-async fn get_response(
+async fn get_response_unchecked(
     client: &Client,
     mut request: Request<Body>,
 ) -> Result<Response<Body>, Error> {
@@ -65,6 +66,11 @@ async fn get_response(
     }
 
     let response = client.client.request(request).await.context(Download)?;
+    Ok(response)
+}
+
+async fn get_response(client: &Client, request: Request<Body>) -> Result<Response<Body>, Error> {
+    let response = get_response_unchecked(client, request).await?;
     let status = response.status();
     if !status.is_success() {
         if let Ok(buf) = response.into_body().try_concat().await {

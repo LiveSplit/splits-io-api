@@ -22,6 +22,18 @@ pub async fn search(client: &Client, name: &str) -> Result<Vec<Runner>, Error> {
     Ok(runners)
 }
 
+pub async fn myself(client: &Client) -> Result<Runner, Error> {
+    let ContainsRunner { runner } = get_json(
+        client,
+        Request::get("https://splits.io/api/v4/runner")
+            .body(Body::empty())
+            .unwrap(),
+    )
+    .await?;
+
+    Ok(runner)
+}
+
 pub async fn get(client: &Client, name: &str) -> Result<Runner, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/runners/").unwrap();
     url.path_segments_mut().unwrap().push(name);

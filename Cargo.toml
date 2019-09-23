@@ -19,6 +19,7 @@ uuid = { version = "0.7.4", features = ["serde"] }
 url = "2.1.0"
 serde_json = "1.0.40"
 futures-preview = "0.3.0-alpha.18"
+tokio-tungstenite = { git = "https://github.com/dbcfd/tokio-tungstenite", branch = "tokio2", default-features = false }
 
 [dev-dependencies]
 tokio = "0.2.0-alpha.4"
