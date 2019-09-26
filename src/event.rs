@@ -126,8 +126,8 @@ impl RawEvent {
 
 #[derive(Debug)]
 pub struct Event {
-    identifier: Identifier,
-    kind: EventKind,
+    pub identifier: Identifier,
+    pub kind: EventKind,
 }
 
 #[derive(Debug)]
