@@ -16,42 +16,36 @@ jobs:
           - i686-pc-windows-gnu
           - x86_64-pc-windows-msvc
           - x86_64-pc-windows-gnu
-          # - i686-apple-darwin
           - x86_64-apple-darwin
         include:
         - target: i686-unknown-linux-gnu
           os: ubuntu-latest
           cargo_dir: ''
-          toolchain: nightly-i686-unknown-linux-gnu
+          toolchain: beta-i686-unknown-linux-gnu
         - target: x86_64-unknown-linux-gnu
           os: ubuntu-latest
           cargo_dir: ''
-          toolchain: nightly
+          toolchain: beta
         - target: i686-pc-windows-msvc
           os: windows-latest
           cargo_dir: ''
-          toolchain: nightly
+          toolchain: beta
         - target: i686-pc-windows-gnu
           os: windows-latest
           cargo_dir: ''
-          toolchain: nightly-i686-pc-windows-gnu
+          toolchain: beta-i686-pc-windows-gnu
         - target: x86_64-pc-windows-msvc
           os: windows-latest
           cargo_dir: ''
-          toolchain: nightly
+          toolchain: beta
         - target: x86_64-pc-windows-gnu
           os: windows-latest
           cargo_dir: ''
-          toolchain: nightly-x86_64-pc-windows-gnu
-        # i686 macOS is deprecated
-        # - target: i686-apple-darwin
-        #   os: macOS-latest
-        #   cargo_dir: '$HOME/.cargo/bin/'
-        #   toolchain: nightly-i686-apple-darwin
+          toolchain: beta-x86_64-pc-windows-gnu
         - target: x86_64-apple-darwin
           os: macOS-latest
           cargo_dir: '$HOME/.cargo/bin/'
-          toolchain: nightly
+          toolchain: beta
 
     steps:
     - uses: actions/checkout@v1
