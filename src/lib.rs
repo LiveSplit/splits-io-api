@@ -1,7 +1,6 @@
 use futures::prelude::*;
 use hyper::{http::header::AUTHORIZATION, Body, Request, Response, StatusCode};
-// use hyper_rustls::HttpsConnector;
-use hyper_tls::HttpsConnector;
+use hyper_rustls::HttpsConnector;
 use snafu::ResultExt;
 
 pub mod category;
@@ -23,7 +22,7 @@ pub struct Client {
 
 impl Client {
     pub fn new() -> Self {
-        let https = HttpsConnector::new().unwrap(); // FIXME: no unwrap or use rustls
+        let https = HttpsConnector::new();
         let client = hyper::Client::builder().build::<_, hyper::Body>(https);
         Client {
             client,

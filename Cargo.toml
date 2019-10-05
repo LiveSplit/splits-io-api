@@ -12,15 +12,14 @@ keywords = ["splits.io", "speedrun", "livesplit", "web", "async"]
 
 [dependencies]
 hyper = { version = "0.13.0-alpha.4", features = ["unstable-stream"] }
-# hyper-rustls = "0.18.0-alpha.1"
-hyper-tls = "0.4.0-alpha.4"
-snafu = "0.5.0"
+hyper-rustls = { git = "https://github.com/CryZe/hyper-rustls", branch = "beta-compatibility" }
+snafu = { version = "0.5.0", default-features = false, features = ["rust_1_30"] }
 serde = { version = "1.0.99", features = ["derive"] }
 uuid = { version = "0.7.4", features = ["serde"] }
 url = "2.1.0"
 serde_json = "1.0.40"
 futures-preview = "0.3.0-alpha.19"
-tokio-tungstenite = { git = "https://github.com/CryZe/tokio-tungstenite", branch = "tokio2", default-features = false }
+tokio-tungstenite = { git = "https://github.com/dbcfd/tokio-tungstenite", branch = "tokio2", default-features = false }
 
 [dev-dependencies]
 tokio = "0.2.0-alpha.6"
