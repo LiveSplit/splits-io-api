@@ -1,10 +1,10 @@
-use futures::prelude::*;
+use futures_util::try_stream::TryStreamExt;
 use hyper::{http::header::AUTHORIZATION, Body, Request, Response, StatusCode};
 use hyper_rustls::HttpsConnector;
 use snafu::ResultExt;
 
 pub mod category;
-pub mod event;
+// pub mod event;
 pub mod game;
 pub mod race;
 pub mod run;

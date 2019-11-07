@@ -9,17 +9,21 @@ license = "Apache-2.0/MIT"
 description = "Bindings to the splits.io API for Rust."
 readme = "README.md"
 keywords = ["splits.io", "speedrun", "livesplit", "web", "async"]
+categories = ["network-programming", "api-bindings"]
+
+[badges]
 
 [dependencies]
+# hyper-tls = "0.4.0-alpha.4"
+# tokio-tungstenite = { git = "https://github.com/dbcfd/tokio-tungstenite", branch = "tokio2", default-features = false }
+futures-util-preview = "0.3.0-alpha.19"
 hyper = { version = "0.13.0-alpha.4", features = ["unstable-stream"] }
-hyper-rustls = { git = "https://github.com/CryZe/hyper-rustls", branch = "beta-compatibility" }
-snafu = { version = "0.5.0", default-features = false, features = ["rust_1_30"] }
+hyper-rustls = "0.18.0-alpha.2"
 serde = { version = "1.0.99", features = ["derive"] }
-uuid = { version = "0.7.4", features = ["serde"] }
-url = "2.1.0"
 serde_json = "1.0.40"
-futures-preview = "0.3.0-alpha.19"
-tokio-tungstenite = { git = "https://github.com/dbcfd/tokio-tungstenite", branch = "tokio2", default-features = false }
+snafu = { version = "0.5.0", default-features = false, features = ["rust_1_30"] }
+url = "2.1.0"
+uuid = { version = "0.8.1", default-features = false, features = ["serde"] }
 
 [dev-dependencies]
-tokio = "0.2.0-alpha.6"
+tokio = { version = "0.2.0-alpha.6", default-features = false, features = ["macros", "rt-current-thread"] }

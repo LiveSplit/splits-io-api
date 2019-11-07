@@ -21,31 +21,31 @@ jobs:
         - target: i686-unknown-linux-gnu
           os: ubuntu-latest
           cargo_dir: ''
-          toolchain: beta-i686-unknown-linux-gnu
+          toolchain: stable-i686-unknown-linux-gnu
         - target: x86_64-unknown-linux-gnu
           os: ubuntu-latest
           cargo_dir: ''
-          toolchain: beta
+          toolchain: stable
         - target: i686-pc-windows-msvc
           os: windows-latest
           cargo_dir: ''
-          toolchain: beta
+          toolchain: stable
         - target: i686-pc-windows-gnu
           os: windows-latest
           cargo_dir: ''
-          toolchain: beta-i686-pc-windows-gnu
+          toolchain: stable-i686-pc-windows-gnu
         - target: x86_64-pc-windows-msvc
           os: windows-latest
           cargo_dir: ''
-          toolchain: beta
+          toolchain: stable
         - target: x86_64-pc-windows-gnu
           os: windows-latest
           cargo_dir: ''
-          toolchain: beta-x86_64-pc-windows-gnu
+          toolchain: stable-x86_64-pc-windows-gnu
         - target: x86_64-apple-darwin
           os: macOS-latest
           cargo_dir: '$HOME/.cargo/bin/'
-          toolchain: beta
+          toolchain: stable
 
     steps:
     - uses: actions/checkout@v1

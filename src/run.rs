@@ -1,5 +1,5 @@
 use crate::{get_json, get_response, schema::Run, wrapper::ContainsRun, Client, Download, Error};
-use futures::prelude::*;
+use futures_util::try_stream::TryStreamExt;
 use hyper::{header::CONTENT_TYPE, Body, Chunk, Request};
 use snafu::ResultExt;
 use std::io::{self, Write};
