@@ -1,3 +1,4 @@
+use crate::platform::Body;
 use crate::{
     get_json, get_response,
     wrapper::{
@@ -6,7 +7,7 @@ use crate::{
     },
     ChatMessage, Client, Entry, Error, Race, Visibility,
 };
-use hyper::{header::CONTENT_TYPE, Body, Request};
+use http::{header::CONTENT_TYPE, Request};
 use url::Url;
 use uuid::Uuid;
 

@@ -1,8 +1,9 @@
+use crate::platform::Body;
 use crate::{get_response_unchecked, ChatMessage, Client, Error, Race};
 use futures::prelude::*;
-use hyper::{
+use http::{
     header::{CONNECTION, UPGRADE},
-    Body, Request, StatusCode,
+    Request, StatusCode,
 };
 use snafu::ResultExt;
 use std::{

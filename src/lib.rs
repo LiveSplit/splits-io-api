@@ -1,7 +1,9 @@
+use crate::platform::Body;
 use futures_util::try_stream::TryStreamExt;
-use hyper::{http::header::AUTHORIZATION, Body, Request, Response, StatusCode};
-use hyper_rustls::HttpsConnector;
+use http::{header::AUTHORIZATION, Request, Response, StatusCode};
 use snafu::ResultExt;
+
+mod platform;
 
 pub mod category;
 // pub mod event;
@@ -16,16 +18,14 @@ pub use schema::*;
 pub use uuid;
 
 pub struct Client {
-    client: hyper::Client<HttpsConnector<hyper::client::HttpConnector>>,
+    client: platform::Client,
     access_token: Option<String>,
 }
 
 impl Client {
     pub fn new() -> Self {
-        let https = HttpsConnector::new();
-        let client = hyper::Client::builder().build::<_, hyper::Body>(https);
         Client {
-            client,
+            client: platform::Client::new(),
             access_token: None,
         }
     }
@@ -48,7 +48,7 @@ pub enum Error {
         message: Box<str>,
     },
     /// Failed downloading the response.
-    Download { source: hyper::Error },
+    Download { source: crate::platform::Error },
     /// Failed to parse the response.
     Json { source: serde_json::Error },
 }

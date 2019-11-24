@@ -1,9 +1,10 @@
+use crate::platform::Body;
 use crate::{
     get_json,
     wrapper::{ContainsCategory, ContainsRunners, ContainsRuns},
     Category, Client, Error, Run, Runner,
 };
-use hyper::{Body, Request};
+use http::Request;
 use url::Url;
 
 pub async fn get(client: &Client, id: &str) -> Result<Category, Error> {

@@ -14,16 +14,24 @@ categories = ["network-programming", "api-bindings"]
 [badges]
 
 [dependencies]
-# hyper-tls = "0.4.0-alpha.4"
-# tokio-tungstenite = { git = "https://github.com/dbcfd/tokio-tungstenite", branch = "tokio2", default-features = false }
 futures-util-preview = "0.3.0-alpha.19"
-hyper = { version = "0.13.0-alpha.4", features = ["unstable-stream"] }
-hyper-rustls = "0.18.0-alpha.2"
+http = "0.1.19"
 serde = { version = "1.0.99", features = ["derive"] }
 serde_json = "1.0.40"
-snafu = { version = "0.5.0", default-features = false, features = ["rust_1_30"] }
+snafu = { version = "0.6.0", default-features = false, features = ["std"] }
 url = "2.1.0"
 uuid = { version = "0.8.1", default-features = false, features = ["serde"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+hyper = { version = "0.13.0-alpha.4", features = ["unstable-stream"] }
+hyper-rustls = "0.19.0-alpha.3"
+# tokio-tungstenite = { git = "https://github.com/dbcfd/tokio-tungstenite", branch = "tokio2", default-features = false }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+js-sys = "0.3.31"
+wasm-bindgen = "0.2.51"
+wasm-bindgen-futures = "0.4.4"
+web-sys = { version = "0.3.32", features = ["Response", "Window", "RequestInit", "AbortSignal", "ObserverCallback", "ReferrerPolicy", "RequestCache", "RequestCredentials", "RequestInit", "RequestMode", "RequestRedirect", "Headers"] }
 
 [dev-dependencies]
 tokio = { version = "0.2.0-alpha.6", default-features = false, features = ["macros", "rt-current-thread"] }

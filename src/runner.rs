@@ -1,3 +1,4 @@
+use crate::platform::Body;
 use crate::{
     get_json,
     wrapper::{
@@ -6,7 +7,7 @@ use crate::{
     },
     Category, Client, Error, Game, Run, Runner,
 };
-use hyper::{Body, Request};
+use http::Request;
 use url::Url;
 
 pub async fn search(client: &Client, name: &str) -> Result<Vec<Runner>, Error> {
