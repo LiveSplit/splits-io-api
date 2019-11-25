@@ -35,7 +35,7 @@ pub async fn myself(client: &Client) -> Result<Runner, Error> {
 }
 
 pub async fn get(client: &Client, name: &str) -> Result<Runner, Error> {
-    let mut url = Url::parse("https://splits.io/api/v4/runners/").unwrap();
+    let mut url = Url::parse("https://splits.io/api/v4/runners").unwrap();
     url.path_segments_mut().unwrap().push(name);
 
     let ContainsRunner { runner } = get_json(
@@ -48,7 +48,7 @@ pub async fn get(client: &Client, name: &str) -> Result<Runner, Error> {
 }
 
 pub async fn get_runs(client: &Client, name: &str) -> Result<Vec<Run>, Error> {
-    let mut url = Url::parse("https://splits.io/api/v4/runners/").unwrap();
+    let mut url = Url::parse("https://splits.io/api/v4/runners").unwrap();
     url.path_segments_mut().unwrap().extend(&[name, "runs"]);
 
     let ContainsRuns { runs } = get_json(
@@ -61,7 +61,7 @@ pub async fn get_runs(client: &Client, name: &str) -> Result<Vec<Run>, Error> {
 }
 
 pub async fn get_pbs(client: &Client, name: &str) -> Result<Vec<Run>, Error> {
-    let mut url = Url::parse("https://splits.io/api/v4/runners/").unwrap();
+    let mut url = Url::parse("https://splits.io/api/v4/runners").unwrap();
     url.path_segments_mut().unwrap().extend(&[name, "pbs"]);
 
     let ContainsPBs { pbs } = get_json(
@@ -74,7 +74,7 @@ pub async fn get_pbs(client: &Client, name: &str) -> Result<Vec<Run>, Error> {
 }
 
 pub async fn get_games(client: &Client, name: &str) -> Result<Vec<Game>, Error> {
-    let mut url = Url::parse("https://splits.io/api/v4/runners/").unwrap();
+    let mut url = Url::parse("https://splits.io/api/v4/runners").unwrap();
     url.path_segments_mut().unwrap().extend(&[name, "games"]);
 
     let ContainsGames { games } = get_json(
@@ -87,7 +87,7 @@ pub async fn get_games(client: &Client, name: &str) -> Result<Vec<Game>, Error> 
 }
 
 pub async fn get_categories(client: &Client, name: &str) -> Result<Vec<Category>, Error> {
-    let mut url = Url::parse("https://splits.io/api/v4/runners/").unwrap();
+    let mut url = Url::parse("https://splits.io/api/v4/runners").unwrap();
     url.path_segments_mut()
         .unwrap()
         .extend(&[name, "categories"]);

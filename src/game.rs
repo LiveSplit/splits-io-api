@@ -20,7 +20,7 @@ pub async fn search(client: &Client, name: &str) -> Result<Vec<Game>, Error> {
 }
 
 pub async fn get(client: &Client, shortname: &str) -> Result<Game, Error> {
-    let mut url = Url::parse("https://splits.io/api/v4/games/").unwrap();
+    let mut url = Url::parse("https://splits.io/api/v4/games").unwrap();
     url.path_segments_mut().unwrap().push(shortname);
 
     let ContainsGame { game } = get_json(
@@ -33,7 +33,7 @@ pub async fn get(client: &Client, shortname: &str) -> Result<Game, Error> {
 }
 
 pub async fn get_categories(client: &Client, shortname: &str) -> Result<Vec<Category>, Error> {
-    let mut url = Url::parse("https://splits.io/api/v4/games/").unwrap();
+    let mut url = Url::parse("https://splits.io/api/v4/games").unwrap();
     url.path_segments_mut()
         .unwrap()
         .extend(&[shortname, "categories"]);
@@ -48,7 +48,7 @@ pub async fn get_categories(client: &Client, shortname: &str) -> Result<Vec<Cate
 }
 
 pub async fn get_runs(client: &Client, shortname: &str) -> Result<Vec<Run>, Error> {
-    let mut url = Url::parse("https://splits.io/api/v4/games/").unwrap();
+    let mut url = Url::parse("https://splits.io/api/v4/games").unwrap();
     url.path_segments_mut()
         .unwrap()
         .extend(&[shortname, "runs"]);
@@ -63,7 +63,7 @@ pub async fn get_runs(client: &Client, shortname: &str) -> Result<Vec<Run>, Erro
 }
 
 pub async fn get_runners(client: &Client, shortname: &str) -> Result<Vec<Runner>, Error> {
-    let mut url = Url::parse("https://splits.io/api/v4/games/").unwrap();
+    let mut url = Url::parse("https://splits.io/api/v4/games").unwrap();
     url.path_segments_mut()
         .unwrap()
         .extend(&[shortname, "runners"]);

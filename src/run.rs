@@ -6,7 +6,7 @@ use std::io::{self, Write};
 use url::Url;
 
 pub async fn download(client: &Client, id: &str) -> Result<Chunk, Error> {
-    let mut url = Url::parse("https://splits.io/api/v4/runs/").unwrap();
+    let mut url = Url::parse("https://splits.io/api/v4/runs").unwrap();
     url.path_segments_mut().unwrap().push(id);
 
     let response = get_response(
@@ -22,7 +22,7 @@ pub async fn download(client: &Client, id: &str) -> Result<Chunk, Error> {
 }
 
 pub async fn get(client: &Client, id: &str, historic: bool) -> Result<Run, Error> {
-    let mut url = Url::parse("https://splits.io/api/v4/runs/").unwrap();
+    let mut url = Url::parse("https://splits.io/api/v4/runs").unwrap();
     url.path_segments_mut().unwrap().push(id);
     if historic {
         url.query_pairs_mut().append_pair("historic", "1");
@@ -95,7 +95,7 @@ pub async fn upload_lazy<E: std::error::Error>(
         presigned_request: PresignedRequest { uri, fields },
     } = get_json(
         client,
-        Request::post("https://splits.io/api/v4/runs/")
+        Request::post("https://splits.io/api/v4/runs")
             .body(Body::empty())
             .unwrap(),
     )

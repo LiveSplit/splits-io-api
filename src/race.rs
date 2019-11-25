@@ -25,7 +25,7 @@ pub async fn get_active(client: &Client) -> Result<Vec<Race>, Error> {
 // TODO: get_all
 
 pub async fn get(client: &Client, id: Uuid) -> Result<Race, Error> {
-    let mut url = Url::parse("https://splits.io/api/v4/races/").unwrap();
+    let mut url = Url::parse("https://splits.io/api/v4/races").unwrap();
     url.path_segments_mut()
         .unwrap()
         .push(id.to_hyphenated().encode_lower(&mut Uuid::encode_buffer()));
@@ -114,7 +114,7 @@ pub async fn update(
     id: Uuid,
     settings: UpdateSettings<'_>,
 ) -> Result<Race, Error> {
-    let mut url = Url::parse("https://splits.io/api/v4/races/").unwrap();
+    let mut url = Url::parse("https://splits.io/api/v4/races").unwrap();
     url.path_segments_mut()
         .unwrap()
         .push(id.to_hyphenated().encode_lower(&mut Uuid::encode_buffer()));
@@ -132,7 +132,7 @@ pub async fn update(
 }
 
 pub async fn get_entries(client: &Client, id: Uuid) -> Result<Vec<Entry>, Error> {
-    let mut url = Url::parse("https://splits.io/api/v4/races/").unwrap();
+    let mut url = Url::parse("https://splits.io/api/v4/races").unwrap();
     url.path_segments_mut().unwrap().extend(&[
         id.to_hyphenated().encode_lower(&mut Uuid::encode_buffer()),
         "entries",
@@ -148,7 +148,7 @@ pub async fn get_entries(client: &Client, id: Uuid) -> Result<Vec<Entry>, Error>
 }
 
 pub async fn get_entry(client: &Client, id: Uuid) -> Result<Entry, Error> {
-    let mut url = Url::parse("https://splits.io/api/v4/races/").unwrap();
+    let mut url = Url::parse("https://splits.io/api/v4/races").unwrap();
     url.path_segments_mut().unwrap().extend(&[
         id.to_hyphenated().encode_lower(&mut Uuid::encode_buffer()),
         "entry",
@@ -187,7 +187,7 @@ pub async fn join(
     join_as: JoinAs<'_>,
     join_token: Option<&str>,
 ) -> Result<Entry, Error> {
-    let mut url = Url::parse("https://splits.io/api/v4/races/").unwrap();
+    let mut url = Url::parse("https://splits.io/api/v4/races").unwrap();
     url.path_segments_mut().unwrap().extend(&[
         race_id
             .to_hyphenated()
@@ -217,7 +217,7 @@ pub async fn join(
 }
 
 pub async fn leave(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<(), Error> {
-    let mut url = Url::parse("https://splits.io/api/v4/races/").unwrap();
+    let mut url = Url::parse("https://splits.io/api/v4/races").unwrap();
     url.path_segments_mut().unwrap().extend(&[
         race_id
             .to_hyphenated()
@@ -258,7 +258,7 @@ struct ForfeitState {
 }
 
 pub async fn ready_up(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<Entry, Error> {
-    let mut url = Url::parse("https://splits.io/api/v4/races/").unwrap();
+    let mut url = Url::parse("https://splits.io/api/v4/races").unwrap();
     url.path_segments_mut().unwrap().extend(&[
         race_id
             .to_hyphenated()
@@ -289,7 +289,7 @@ pub async fn ready_up(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<
 }
 
 pub async fn unready(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<Entry, Error> {
-    let mut url = Url::parse("https://splits.io/api/v4/races/").unwrap();
+    let mut url = Url::parse("https://splits.io/api/v4/races").unwrap();
     url.path_segments_mut().unwrap().extend(&[
         race_id
             .to_hyphenated()
@@ -318,7 +318,7 @@ pub async fn unready(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<E
 }
 
 pub async fn finish(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<Entry, Error> {
-    let mut url = Url::parse("https://splits.io/api/v4/races/").unwrap();
+    let mut url = Url::parse("https://splits.io/api/v4/races").unwrap();
     url.path_segments_mut().unwrap().extend(&[
         race_id
             .to_hyphenated()
@@ -349,7 +349,7 @@ pub async fn finish(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<En
 }
 
 pub async fn undo_finish(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<Entry, Error> {
-    let mut url = Url::parse("https://splits.io/api/v4/races/").unwrap();
+    let mut url = Url::parse("https://splits.io/api/v4/races").unwrap();
     url.path_segments_mut().unwrap().extend(&[
         race_id
             .to_hyphenated()
@@ -378,7 +378,7 @@ pub async fn undo_finish(client: &Client, race_id: Uuid, entry_id: Uuid) -> Resu
 }
 
 pub async fn forfeit(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<Entry, Error> {
-    let mut url = Url::parse("https://splits.io/api/v4/races/").unwrap();
+    let mut url = Url::parse("https://splits.io/api/v4/races").unwrap();
     url.path_segments_mut().unwrap().extend(&[
         race_id
             .to_hyphenated()
@@ -409,7 +409,7 @@ pub async fn forfeit(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<E
 }
 
 pub async fn undo_forfeit(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<Entry, Error> {
-    let mut url = Url::parse("https://splits.io/api/v4/races/").unwrap();
+    let mut url = Url::parse("https://splits.io/api/v4/races").unwrap();
     url.path_segments_mut().unwrap().extend(&[
         race_id
             .to_hyphenated()
@@ -438,7 +438,7 @@ pub async fn undo_forfeit(client: &Client, race_id: Uuid, entry_id: Uuid) -> Res
 }
 
 pub async fn get_chat(client: &Client, id: Uuid) -> Result<Vec<ChatMessage>, Error> {
-    let mut url = Url::parse("https://splits.io/api/v4/races/").unwrap();
+    let mut url = Url::parse("https://splits.io/api/v4/races").unwrap();
     url.path_segments_mut().unwrap().extend(&[
         id.to_hyphenated().encode_lower(&mut Uuid::encode_buffer()),
         "chat",
@@ -468,7 +468,7 @@ pub async fn send_chat_message(
     id: Uuid,
     message: &str,
 ) -> Result<ChatMessage, Error> {
-    let mut url = Url::parse("https://splits.io/api/v4/races/").unwrap();
+    let mut url = Url::parse("https://splits.io/api/v4/races").unwrap();
     url.path_segments_mut().unwrap().extend(&[
         id.to_hyphenated().encode_lower(&mut Uuid::encode_buffer()),
         "chat",
