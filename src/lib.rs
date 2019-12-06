@@ -1,5 +1,4 @@
-use crate::platform::Body;
-use futures_util::try_stream::TryStreamExt;
+use crate::platform::{recv_reader, Body};
 use http::{header::AUTHORIZATION, Request, Response, StatusCode};
 use snafu::ResultExt;
 
@@ -73,8 +72,8 @@ async fn get_response(client: &Client, request: Request<Body>) -> Result<Respons
     let response = get_response_unchecked(client, request).await?;
     let status = response.status();
     if !status.is_success() {
-        if let Ok(buf) = response.into_body().try_concat().await {
-            if let Ok(error) = serde_json::from_reader::<_, ApiError>(&*buf) {
+        if let Ok(reader) = recv_reader(response.into_body()).await {
+            if let Ok(error) = serde_json::from_reader::<_, ApiError>(reader) {
                 return Err(Error::Api {
                     status,
                     message: error.error,
@@ -91,9 +90,8 @@ async fn get_json<T: serde::de::DeserializeOwned>(
     request: Request<Body>,
 ) -> Result<T, Error> {
     let response = get_response(client, request).await?;
-    let buf = response.into_body().try_concat().await.context(Download)?;
-    println!("{}", String::from_utf8_lossy(&*buf));
-    serde_json::from_reader(&*buf).context(Json)
+    let reader = recv_reader(response.into_body()).await.context(Download)?;
+    serde_json::from_reader(reader).context(Json)
 }
 
 #[derive(serde::Deserialize)]
