@@ -10,6 +10,14 @@ description = "Bindings to the splits.io API for Rust."
 readme = "README.md"
 keywords = ["splits.io", "speedrun", "livesplit", "web", "async"]
 categories = ["network-programming", "api-bindings"]
+include = [
+    "/src/*",
+    "/Cargo.toml",
+    "/CHANGELOG.md",
+    "/LICENSE-APACHE",
+    "/LICENSE-MIT",
+    "/README.md"
+]
 
 [badges]
 
