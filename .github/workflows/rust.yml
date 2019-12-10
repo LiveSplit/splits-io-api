@@ -11,7 +11,7 @@ jobs:
       matrix:
         target:
           - wasm32-unknown-unknown
-          - i686-unknown-linux-gnu
+          # - i686-unknown-linux-gnu
           - x86_64-unknown-linux-gnu
           - i686-pc-windows-msvc
           - i686-pc-windows-gnu
@@ -24,10 +24,10 @@ jobs:
           cargo_dir: ''
           toolchain: stable
           tests: skip
-        - target: i686-unknown-linux-gnu
-          os: ubuntu-latest
-          cargo_dir: ''
-          toolchain: stable-i686-unknown-linux-gnu
+        # - target: i686-unknown-linux-gnu
+        #   os: ubuntu-latest
+        #   cargo_dir: ''
+        #   toolchain: stable-i686-unknown-linux-gnu
         - target: x86_64-unknown-linux-gnu
           os: ubuntu-latest
           cargo_dir: ''
@@ -57,7 +57,7 @@ jobs:
     - uses: actions/checkout@v1
     - name: Install gcc-multilib
       if: matrix.target == 'i686-unknown-linux-gnu'
-      run: sudo apt-get update && sudo apt-get install -y --no-install-recommends g++-multilib libssl-dev:i386
+      run: sudo apt-get update && sudo apt-get install -y --no-install-recommends g++-multilib
     - name: Install Rust Compiler
       if: matrix.os == 'macOS-latest'
       run: curl https://sh.rustup.rs -sSf | sh -s -- -y
