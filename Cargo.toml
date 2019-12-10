@@ -8,7 +8,7 @@ repository = "https://github.com/LiveSplit/split-io-api"
 license = "Apache-2.0/MIT"
 description = "Bindings to the splits.io API for Rust."
 readme = "README.md"
-keywords = ["splits.io", "speedrun", "livesplit", "web", "async"]
+keywords = ["splits-io", "speedrun", "livesplit", "web", "async"]
 categories = ["network-programming", "api-bindings"]
 include = [
     "/src/*",
