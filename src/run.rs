@@ -1,12 +1,12 @@
-use crate::platform::{Body, Chunk};
+use crate::platform::{recv_bytes, Body};
 use crate::{get_json, get_response, schema::Run, wrapper::ContainsRun, Client, Download, Error};
-use futures_util::try_stream::TryStreamExt;
 use http::{header::CONTENT_TYPE, Request};
 use snafu::ResultExt;
 use std::io::{self, Write};
+use std::ops::Deref;
 use url::Url;
 
-pub async fn download(client: &Client, id: &str) -> Result<Chunk, Error> {
+pub async fn download(client: &Client, id: &str) -> Result<impl Deref<Target = [u8]>, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/runs").unwrap();
     url.path_segments_mut().unwrap().push(id);
 
@@ -19,7 +19,7 @@ pub async fn download(client: &Client, id: &str) -> Result<Chunk, Error> {
     )
     .await?;
 
-    response.into_body().try_concat().await.context(Download)
+    recv_bytes(response.into_body()).await.context(Download)
 }
 
 pub async fn get(client: &Client, id: &str, historic: bool) -> Result<Run, Error> {

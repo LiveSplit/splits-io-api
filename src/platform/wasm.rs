@@ -5,38 +5,15 @@ use http::{
 };
 use js_sys::{Array, Reflect, Uint8Array};
 use snafu::OptionExt;
+use std::{
+    io::{Cursor, Read},
+    ops::Deref,
+};
 use wasm_bindgen::{prelude::*, JsCast};
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{window, RequestInit};
 
 pub struct Client;
-
-#[derive(Default)]
-pub struct Chunk(Vec<u8>);
-
-impl IntoIterator for Chunk {
-    type Item = u8;
-    type IntoIter = std::vec::IntoIter<u8>;
-    fn into_iter(self) -> Self::IntoIter {
-        self.0.into_iter()
-    }
-}
-
-impl std::iter::Extend<u8> for Chunk {
-    fn extend<T>(&mut self, iter: T)
-    where
-        T: IntoIterator<Item = u8>,
-    {
-        self.0.extend(iter)
-    }
-}
-
-impl std::ops::Deref for Chunk {
-    type Target = [u8];
-    fn deref(&self) -> &[u8] {
-        &*self.0
-    }
-}
 
 #[derive(Debug, snafu::Snafu)]
 pub enum Error {
@@ -54,10 +31,24 @@ pub struct Body {
     data: Option<Vec<u8>>,
 }
 
+impl Body {
+    pub fn empty() -> Self {
+        Self { data: None }
+    }
+}
+
 impl From<Vec<u8>> for Body {
     fn from(data: Vec<u8>) -> Body {
         Body { data: Some(data) }
     }
+}
+
+pub async fn recv_bytes(body: Body) -> Result<impl Deref<Target = [u8]>, Error> {
+    Ok(body.data.unwrap_or_default())
+}
+
+pub async fn recv_reader(body: Body) -> Result<impl Read, Error> {
+    Ok(Cursor::new(body.data.unwrap_or_default()))
 }
 
 impl Client {
@@ -127,7 +118,7 @@ impl Client {
 
         let headers = response.headers_mut();
 
-        let prop = String::from("value").into();
+        let prop = "value".into();
 
         for pair in js_sys::try_iter(&web_response.headers()).unwrap().unwrap() {
             let array: Array = pair.unwrap().into();
@@ -147,23 +138,9 @@ impl Client {
 
         Ok(response)
     }
-}
 
-impl Body {
-    pub fn empty() -> Self {
-        Self { data: None }
-    }
-}
-
-use core::{
-    pin::Pin,
-    task::{Context, Poll},
-};
-
-impl futures_util::stream::Stream for Body {
-    type Item = Result<Chunk, Error>;
-
-    fn poll_next(mut self: Pin<&mut Self>, _: &mut Context) -> Poll<Option<Self::Item>> {
-        Poll::Ready(self.data.take().map(|v| Ok(Chunk(v))))
-    }
+    // pub async fn open_websocket(&self, url: &str) {
+    //     // TODO: wss:// vs. https://
+    //     let ws = WebSocket::new(url).map_err(|error| ReceiveResponse { error })?;
+    // }
 }
