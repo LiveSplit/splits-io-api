@@ -1,3 +1,14 @@
+#![warn(
+    clippy::complexity,
+    clippy::correctness,
+    clippy::perf,
+    clippy::style,
+    missing_docs,
+    rust_2018_idioms
+)]
+
+//! splits-io-api is a library that provides bindings for the Splits.io API for Rust.
+
 use crate::platform::{recv_reader, Body};
 use http::{header::AUTHORIZATION, Request, Response, StatusCode};
 use snafu::ResultExt;
@@ -16,12 +27,15 @@ pub use schema::*;
 
 pub use uuid;
 
+/// A client that can access the Splits.io API. This includes an access token that is used for
+/// authentication to all API endpoints.
 pub struct Client {
     client: platform::Client,
     access_token: Option<String>,
 }
 
 impl Client {
+    /// Creates a new client.
     pub fn new() -> Self {
         Client {
             client: platform::Client::new(),
@@ -29,6 +43,7 @@ impl Client {
         }
     }
 
+    /// Sets the client's access token, which can be used to authenticate to all API endpoints.
     pub fn set_access_token(&mut self, access_token: &str) {
         let buf = self.access_token.get_or_insert_with(String::new);
         buf.clear();
@@ -38,18 +53,32 @@ impl Client {
 }
 
 #[derive(Debug, snafu::Snafu)]
+/// An error when making an API request.
 pub enum Error {
+    /// An HTTP error outside of the API.
     #[snafu(display("HTTP Status Code: {}", status.canonical_reason().unwrap_or_else(|| status.as_str())))]
-    Status { status: StatusCode },
+    Status {
+        /// The HTTP status code of the error.
+        status: StatusCode,
+    },
+    /// An error thrown by the API.
     #[snafu(display("{}", message))]
     Api {
+        /// The HTTP status code of the error.
         status: StatusCode,
+        /// The error message.
         message: Box<str>,
     },
     /// Failed downloading the response.
-    Download { source: crate::platform::Error },
+    Download {
+        /// The lower-level source of the error.
+        source: crate::platform::Error,
+    },
     /// Failed to parse the response.
-    Json { source: serde_json::Error },
+    Json {
+        /// The lower-level source of the error.
+        source: serde_json::Error,
+    },
 }
 
 async fn get_response_unchecked(

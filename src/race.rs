@@ -1,3 +1,7 @@
+//! The race module handles retrieving Races. A Race is a competition between multiple Runners.
+//!
+//! [API Documentation](https://github.com/glacials/splits-io/blob/master/docs/api.md#race)
+
 use crate::platform::Body;
 use crate::{
     get_json, get_response,
@@ -11,6 +15,7 @@ use http::{header::CONTENT_TYPE, Request};
 use url::Url;
 use uuid::Uuid;
 
+/// Gets all the currently active Races on Splits.io.
 pub async fn get_active(client: &Client) -> Result<Vec<Race>, Error> {
     let ContainsRaces { races } = get_json(
         client,
@@ -25,6 +30,7 @@ pub async fn get_active(client: &Client) -> Result<Vec<Race>, Error> {
 
 // TODO: get_all
 
+/// Gets a Race.
 pub async fn get(client: &Client, id: Uuid) -> Result<Race, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/races").unwrap();
     url.path_segments_mut()
@@ -40,21 +46,30 @@ pub async fn get(client: &Client, id: Uuid) -> Result<Race, Error> {
     Ok(race)
 }
 
+/// The settings for a Race.
 #[derive(Default, serde::Serialize)]
 pub struct Settings<'a> {
+    /// The ID of the Game that is being raced.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub game_id: Option<&'a str>,
+    /// The ID of the Category that is being raced.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub category_id: Option<&'a str>,
+    /// Any notes that are associated with the Race.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub notes: Option<&'a str>,
+    /// The visibility of the Race.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub visibility: Option<Visibility>,
 }
 
+/// The type of update to perform on the given property.
 pub enum Update<T> {
+    /// Keep the previous value of the property.
     Keep,
+    /// Clear the value of the property.
     Clear,
+    /// Change the value of the property.
     Set(T),
 }
 
@@ -85,18 +100,24 @@ impl<T: serde::Serialize> serde::Serialize for Update<T> {
     }
 }
 
+/// The new properties to use for a Race when performing an update.
 #[derive(Default, serde::Serialize)]
 pub struct UpdateSettings<'a> {
+    /// The update to perform for the ID of the Game that is being raced.
     #[serde(skip_serializing_if = "Update::is_keep")]
     pub game_id: Update<&'a str>,
+    /// The update to perform for the ID of the Category that is being raced.
     #[serde(skip_serializing_if = "Update::is_keep")]
     pub category_id: Update<&'a str>,
+    /// The update to perform for any notes that are associated with the Race.
     #[serde(skip_serializing_if = "Update::is_keep")]
     pub notes: Update<&'a str>,
+    /// The update to perform for the visibility of the Race.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub visibility: Option<Visibility>,
 }
 
+/// Creates a new Race.
 pub async fn create(client: &Client, settings: Settings<'_>) -> Result<Race, Error> {
     let ContainsRace { race } = get_json(
         client,
@@ -110,6 +131,7 @@ pub async fn create(client: &Client, settings: Settings<'_>) -> Result<Race, Err
     Ok(race)
 }
 
+/// Updates a Race.
 pub async fn update(
     client: &Client,
     id: Uuid,
@@ -132,6 +154,7 @@ pub async fn update(
     Ok(race)
 }
 
+/// Gets all of the entries for a Race.
 pub async fn get_entries(client: &Client, id: Uuid) -> Result<Vec<Entry>, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/races").unwrap();
     url.path_segments_mut().unwrap().extend(&[
@@ -148,6 +171,7 @@ pub async fn get_entries(client: &Client, id: Uuid) -> Result<Vec<Entry>, Error>
     Ok(entries)
 }
 
+/// Gets the entry in a Race that is associated with the current user.
 pub async fn get_entry(client: &Client, id: Uuid) -> Result<Entry, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/races").unwrap();
     url.path_segments_mut().unwrap().extend(&[
@@ -164,8 +188,11 @@ pub async fn get_entry(client: &Client, id: Uuid) -> Result<Entry, Error> {
     Ok(entry)
 }
 
+/// The type of racer to join the Race as.
 pub enum JoinAs<'a> {
+    /// Join the Race as a regular user.
     Myself,
+    /// Join the Race as a ghost of a past Run.
     Ghost(&'a str),
 }
 
@@ -182,6 +209,7 @@ struct JoinEntry<'a> {
     run_id: &'a str,
 }
 
+/// Joins the Race for the given entry.
 pub async fn join(
     client: &Client,
     race_id: Uuid,
@@ -217,6 +245,7 @@ pub async fn join(
     Ok(entry)
 }
 
+/// Leaves the Race for the given entry.
 pub async fn leave(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<(), Error> {
     let mut url = Url::parse("https://splits.io/api/v4/races").unwrap();
     url.path_segments_mut().unwrap().extend(&[
@@ -258,6 +287,7 @@ struct ForfeitState {
     forfeited_at: Option<&'static str>,
 }
 
+/// Declares the given entry as ready for a Race.
 pub async fn ready_up(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<Entry, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/races").unwrap();
     url.path_segments_mut().unwrap().extend(&[
@@ -289,6 +319,7 @@ pub async fn ready_up(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<
     Ok(entry)
 }
 
+/// Undoes a ready for the given entry in a Race.
 pub async fn unready(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<Entry, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/races").unwrap();
     url.path_segments_mut().unwrap().extend(&[
@@ -318,6 +349,7 @@ pub async fn unready(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<E
     Ok(entry)
 }
 
+/// Finishes the Race for the given entry.
 pub async fn finish(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<Entry, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/races").unwrap();
     url.path_segments_mut().unwrap().extend(&[
@@ -349,6 +381,7 @@ pub async fn finish(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<En
     Ok(entry)
 }
 
+/// Undoes a finish for the given entry in a Race.
 pub async fn undo_finish(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<Entry, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/races").unwrap();
     url.path_segments_mut().unwrap().extend(&[
@@ -378,6 +411,7 @@ pub async fn undo_finish(client: &Client, race_id: Uuid, entry_id: Uuid) -> Resu
     Ok(entry)
 }
 
+/// Forfeits the Race for the given entry.
 pub async fn forfeit(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<Entry, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/races").unwrap();
     url.path_segments_mut().unwrap().extend(&[
@@ -409,6 +443,7 @@ pub async fn forfeit(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<E
     Ok(entry)
 }
 
+/// Undoes a forfeit for the given entry in a Race.
 pub async fn undo_forfeit(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<Entry, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/races").unwrap();
     url.path_segments_mut().unwrap().extend(&[
@@ -438,6 +473,7 @@ pub async fn undo_forfeit(client: &Client, race_id: Uuid, entry_id: Uuid) -> Res
     Ok(entry)
 }
 
+/// Gets all of the chat messages for a Race.
 pub async fn get_chat(client: &Client, id: Uuid) -> Result<Vec<ChatMessage>, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/races").unwrap();
     url.path_segments_mut().unwrap().extend(&[
@@ -464,6 +500,7 @@ struct SendMessageBody<'a> {
     body: &'a str,
 }
 
+/// Sends a message in the chat for a Race.
 pub async fn send_chat_message(
     client: &Client,
     id: Uuid,

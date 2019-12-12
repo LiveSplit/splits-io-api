@@ -1,3 +1,7 @@
+//! The run module handles retrieving Runs. A Run maps directly to an uploaded splits file.
+//!
+//! [API Documentation](https://github.com/glacials/splits-io/blob/master/docs/api.md#run)
+
 use crate::platform::{recv_bytes, Body};
 use crate::{get_json, get_response, schema::Run, wrapper::ContainsRun, Client, Download, Error};
 use http::{header::CONTENT_TYPE, Request};
@@ -6,6 +10,7 @@ use std::io::{self, Write};
 use std::ops::Deref;
 use url::Url;
 
+/// Downloads the splits for a Run.
 pub async fn download(client: &Client, id: &str) -> Result<impl Deref<Target = [u8]>, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/runs").unwrap();
     url.path_segments_mut().unwrap().push(id);
@@ -22,6 +27,7 @@ pub async fn download(client: &Client, id: &str) -> Result<impl Deref<Target = [
     recv_bytes(response.into_body()).await.context(Download)
 }
 
+/// Gets a Run.
 pub async fn get(client: &Client, id: &str, historic: bool) -> Result<Run, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/runs").unwrap();
     url.path_segments_mut().unwrap().push(id);
@@ -65,12 +71,16 @@ struct PresignedRequestFields {
     signature: Box<str>,
 }
 
+/// A run that was uploaded to Splits.io.
 #[derive(Debug)]
 pub struct UploadedRun {
+    /// The unique ID for identifying the run.
     pub id: Box<str>,
+    /// The token that can be used by the user to claim the run as their own.
     pub claim_token: Box<str>,
 }
 
+/// Handles writing a run to the body of an upload request.
 pub struct RunWriter(Vec<u8>);
 
 impl Write for RunWriter {
@@ -82,10 +92,12 @@ impl Write for RunWriter {
     }
 }
 
+/// Uploads a run to Splits.io.
 pub async fn upload(client: &Client, run: &[u8]) -> Result<UploadedRun, Error> {
     upload_lazy(client, |writer| writer.write_all(run)).await
 }
 
+/// Uploads a run to Splits.io by using a RunWriter in order to write the request body.
 pub async fn upload_lazy<E: std::error::Error>(
     client: &Client,
     write_run: impl FnOnce(&mut RunWriter) -> Result<(), E>,

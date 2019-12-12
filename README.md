@@ -2,7 +2,7 @@
 
 [![Build Status](https://github.com/LiveSplit/splits-io-api/workflows/Rust/badge.svg)](https://github.com/LiveSplit/splits-io-api/actions)
 
-Bindings to the splits.io API for Rust. Both native platforms and the web are
+Bindings to the Splits.io API for Rust. Both native platforms and the web are
 supported.
 
 ## License
