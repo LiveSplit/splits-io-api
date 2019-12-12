@@ -1,6 +1,9 @@
 # splits-io-api
 
 [![Build Status](https://github.com/LiveSplit/splits-io-api/workflows/Rust/badge.svg)](https://github.com/LiveSplit/splits-io-api/actions)
+[![crates.io](https://img.shields.io/crates/v/splits-io-api.svg)](https://crates.io/crates/splits-io-api)
+[![docs.rs](https://docs.rs/splits-io-api/badge.svg)](https://docs.rs/splits-io-api/)
+[![dependency status](https://deps.rs/repo/github/LiveSplit/splits-io-api/status.svg)](https://deps.rs/repo/github/LiveSplit/splits-io-api)
 
 Bindings to the splits.io API for Rust. Both native platforms and the web are
 supported.
