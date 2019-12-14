@@ -37,7 +37,7 @@
 //! // Get the runs for the Any% category.
 //! let any_percent = game_categories.iter().find(|category| &*category.name == "Any%").unwrap();
 //! let any_percent_runs = category::get_runs(&client, &any_percent.id).await.unwrap();
-//! assert!(any_percent_runs.len() > 0);
+//! assert!(!any_percent_runs.is_empty());
 //! # }
 //! ```
 
