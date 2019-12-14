@@ -1,3 +1,8 @@
+//! The runner module handles retrieving Runners. A Runner is a user with at least one Run tied to
+//! their Splits.io account.
+//!
+//! [API Documentation](https://github.com/glacials/splits-io/blob/master/docs/api.md#runner)
+
 use crate::platform::Body;
 use crate::{
     get_json,
@@ -10,6 +15,7 @@ use crate::{
 use http::Request;
 use url::Url;
 
+/// Searches for a Runner based on the name of the runner.
 pub async fn search(client: &Client, name: &str) -> Result<Vec<Runner>, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/runners").unwrap();
     url.query_pairs_mut().append_pair("search", name);
@@ -23,6 +29,7 @@ pub async fn search(client: &Client, name: &str) -> Result<Vec<Runner>, Error> {
     Ok(runners)
 }
 
+/// Gets the Runner that is associated with the current user.
 pub async fn myself(client: &Client) -> Result<Runner, Error> {
     let ContainsRunner { runner } = get_json(
         client,
@@ -35,6 +42,7 @@ pub async fn myself(client: &Client) -> Result<Runner, Error> {
     Ok(runner)
 }
 
+/// Gets a Runner based on the name of the runner.
 pub async fn get(client: &Client, name: &str) -> Result<Runner, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/runners").unwrap();
     url.path_segments_mut().unwrap().push(name);
@@ -48,6 +56,7 @@ pub async fn get(client: &Client, name: &str) -> Result<Runner, Error> {
     Ok(runner)
 }
 
+/// Gets the Runs that are associated with a Runner.
 pub async fn get_runs(client: &Client, name: &str) -> Result<Vec<Run>, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/runners").unwrap();
     url.path_segments_mut().unwrap().extend(&[name, "runs"]);
@@ -61,6 +70,7 @@ pub async fn get_runs(client: &Client, name: &str) -> Result<Vec<Run>, Error> {
     Ok(runs)
 }
 
+/// Gets the personal best Runs that are associated with a Runner.
 pub async fn get_pbs(client: &Client, name: &str) -> Result<Vec<Run>, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/runners").unwrap();
     url.path_segments_mut().unwrap().extend(&[name, "pbs"]);
@@ -74,6 +84,7 @@ pub async fn get_pbs(client: &Client, name: &str) -> Result<Vec<Run>, Error> {
     Ok(pbs)
 }
 
+/// Gets the Games that are associated with a Runner.
 pub async fn get_games(client: &Client, name: &str) -> Result<Vec<Game>, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/runners").unwrap();
     url.path_segments_mut().unwrap().extend(&[name, "games"]);
@@ -87,6 +98,7 @@ pub async fn get_games(client: &Client, name: &str) -> Result<Vec<Game>, Error> 
     Ok(games)
 }
 
+/// Gets the Categories that are associated with a Runner.
 pub async fn get_categories(client: &Client, name: &str) -> Result<Vec<Category>, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/runners").unwrap();
     url.path_segments_mut()

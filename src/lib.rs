@@ -1,3 +1,46 @@
+#![warn(
+    clippy::complexity,
+    clippy::correctness,
+    clippy::perf,
+    clippy::style,
+    missing_docs,
+    rust_2018_idioms
+)]
+
+//! splits-io-api is a library that provides bindings for the Splits.io API for Rust.
+//!
+//! ```no_run
+//! # use splits_io_api::{category, game, runner, Client};
+//! #
+//! # async fn query_api() {
+//! // Create a Splits.io API client.
+//! let client = Client::new();
+//!
+//! // Search for a runner.
+//! let runners = runner::search(&client, "cryze").await.unwrap();
+//! let runner = runners.first().unwrap();
+//! let runner_name = &*runner.name;
+//! assert_eq!(runner_name, "cryze92");
+//!
+//! // Get the PBs for the runner.
+//! let runner_pbs = runner::get_pbs(&client, runner_name).await.unwrap();
+//! let first_pb = &*runner_pbs.first().unwrap();
+//!
+//! // Get the game for the PB.
+//! let pb_game = first_pb.game.as_ref().unwrap();
+//! let pb_game_shortname = pb_game.shortname.as_ref().unwrap();
+//! assert_eq!(pb_game_shortname.as_ref(), "tww");
+//!
+//! // Get the categories for the game.
+//! let game_categories = game::get_categories(&client, pb_game_shortname).await.unwrap();
+//!
+//! // Get the runs for the Any% category.
+//! let any_percent = game_categories.iter().find(|category| &*category.name == "Any%").unwrap();
+//! let any_percent_runs = category::get_runs(&client, &any_percent.id).await.unwrap();
+//! assert!(!any_percent_runs.is_empty());
+//! # }
+//! ```
+
 use crate::platform::{recv_reader, Body};
 use http::{header::AUTHORIZATION, Request, Response, StatusCode};
 use snafu::ResultExt;
@@ -16,12 +59,15 @@ pub use schema::*;
 
 pub use uuid;
 
+/// A client that can access the Splits.io API. This includes an access token that is used for
+/// authentication to all API endpoints.
 pub struct Client {
     client: platform::Client,
     access_token: Option<String>,
 }
 
 impl Client {
+    /// Creates a new client.
     pub fn new() -> Self {
         Client {
             client: platform::Client::new(),
@@ -29,6 +75,7 @@ impl Client {
         }
     }
 
+    /// Sets the client's access token, which can be used to authenticate to all API endpoints.
     pub fn set_access_token(&mut self, access_token: &str) {
         let buf = self.access_token.get_or_insert_with(String::new);
         buf.clear();
@@ -38,18 +85,32 @@ impl Client {
 }
 
 #[derive(Debug, snafu::Snafu)]
+/// An error when making an API request.
 pub enum Error {
+    /// An HTTP error outside of the API.
     #[snafu(display("HTTP Status Code: {}", status.canonical_reason().unwrap_or_else(|| status.as_str())))]
-    Status { status: StatusCode },
+    Status {
+        /// The HTTP status code of the error.
+        status: StatusCode,
+    },
+    /// An error thrown by the API.
     #[snafu(display("{}", message))]
     Api {
+        /// The HTTP status code of the error.
         status: StatusCode,
+        /// The error message.
         message: Box<str>,
     },
     /// Failed downloading the response.
-    Download { source: crate::platform::Error },
+    Download {
+        /// The lower-level source of the error.
+        source: crate::platform::Error,
+    },
     /// Failed to parse the response.
-    Json { source: serde_json::Error },
+    Json {
+        /// The lower-level source of the error.
+        source: serde_json::Error,
+    },
 }
 
 async fn get_response_unchecked(
