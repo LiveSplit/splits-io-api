@@ -1,6 +1,6 @@
 use bytes::buf::BufExt;
 use http::{Request, Response};
-use hyper_tls::HttpsConnector;
+use hyper_rustls::HttpsConnector;
 use std::{io::Read, ops::Deref};
 
 pub use hyper::{Body, Error};

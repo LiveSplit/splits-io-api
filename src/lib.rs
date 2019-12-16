@@ -66,13 +66,19 @@ pub struct Client {
     access_token: Option<String>,
 }
 
-impl Client {
-    /// Creates a new client.
-    pub fn new() -> Self {
+impl Default for Client {
+    fn default() -> Self {
         Client {
             client: platform::Client::new(),
             access_token: None,
         }
+    }
+}
+
+impl Client {
+    /// Creates a new client.
+    pub fn new() -> Self {
+        Self::default()
     }
 
     /// Sets the client's access token, which can be used to authenticate to all API endpoints.
