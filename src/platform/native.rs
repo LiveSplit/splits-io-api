@@ -1,5 +1,24 @@
 use bytes::buf::BufExt;
 use http::{Request, Response};
+#[cfg(all(
+    any(target_os = "linux", target_family = "windows", target_os = "macos"),
+    any(
+        target_arch = "x86",
+        target_arch = "x86_64",
+        target_arch = "arm",
+        target_arch = "aarch64",
+    ),
+))]
+use hyper_rustls::HttpsConnector;
+#[cfg(not(all(
+    any(target_os = "linux", target_family = "windows", target_os = "macos"),
+    any(
+        target_arch = "x86",
+        target_arch = "x86_64",
+        target_arch = "arm",
+        target_arch = "aarch64",
+    ),
+)))]
 use hyper_tls::HttpsConnector;
 use std::{io::Read, ops::Deref};
 
