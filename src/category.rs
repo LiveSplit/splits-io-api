@@ -12,6 +12,23 @@ use crate::{
 use http::Request;
 use url::Url;
 
+impl Category {
+    /// Gets a Category.
+    pub async fn get(client: &Client, id: &str) -> Result<Self, Error> {
+        self::get(client, id).await
+    }
+
+    /// Gets the Runners that belong to the Category.
+    pub async fn runners(&self, client: &Client) -> Result<Vec<Runner>, Error> {
+        get_runners(client, &self.id).await
+    }
+
+    /// Gets the Runs that belong to the Category.
+    pub async fn runs(&self, client: &Client) -> Result<Vec<Run>, Error> {
+        get_runs(client, &self.id).await
+    }
+}
+
 /// Gets a Category.
 pub async fn get(client: &Client, id: &str) -> Result<Category, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/categories").unwrap();

@@ -7,10 +7,50 @@ use crate::platform::Body;
 use crate::{
     get_json,
     wrapper::{ContainsCategories, ContainsGame, ContainsGames, ContainsRunners, ContainsRuns},
-    Category, Client, Error, Game, Run, Runner,
+    Category, Client, Error, Game, Run, Runner, UnidentifiableResource,
 };
 use http::Request;
+use snafu::OptionExt;
 use url::Url;
+
+impl Game {
+    /// Searches for a Game based on the name of the game.
+    pub async fn search(client: &Client, name: &str) -> Result<Vec<Game>, Error> {
+        self::search(client, name).await
+    }
+
+    /// Gets a Game based on the shortened title of the game.
+    pub async fn get(client: &Client, shortname: &str) -> Result<Game, Error> {
+        self::get(client, shortname).await
+    }
+
+    /// Gets the Categories that belong to the Game based on the shortened title of the game.
+    pub async fn categories(&self, client: &Client) -> Result<Vec<Category>, Error> {
+        get_categories(
+            client,
+            &self.shortname.as_ref().context(UnidentifiableResource)?,
+        )
+        .await
+    }
+
+    /// Gets the Runs that belong to the Game based on the shortened title of the game.
+    pub async fn runs(&self, client: &Client) -> Result<Vec<Run>, Error> {
+        get_runs(
+            client,
+            &self.shortname.as_ref().context(UnidentifiableResource)?,
+        )
+        .await
+    }
+
+    /// Gets the Runners that belong to the Game based on the shortened title of the game.
+    pub async fn runners(&self, client: &Client) -> Result<Vec<Runner>, Error> {
+        get_runners(
+            client,
+            &self.shortname.as_ref().context(UnidentifiableResource)?,
+        )
+        .await
+    }
+}
 
 /// Searches for a Game based on the name of the game.
 pub async fn search(client: &Client, name: &str) -> Result<Vec<Game>, Error> {
@@ -72,7 +112,7 @@ pub async fn get_runs(client: &Client, shortname: &str) -> Result<Vec<Run>, Erro
     Ok(runs)
 }
 
-/// Gets the Runners that belong to a Game  based on the shortened title of the game.
+/// Gets the Runners that belong to a Game based on the shortened title of the game.
 pub async fn get_runners(client: &Client, shortname: &str) -> Result<Vec<Runner>, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/games").unwrap();
     url.path_segments_mut()

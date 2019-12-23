@@ -3,12 +3,49 @@
 //! [API Documentation](https://github.com/glacials/splits-io/blob/master/docs/api.md#run)
 
 use crate::platform::{recv_bytes, Body};
-use crate::{get_json, get_response, schema::Run, wrapper::ContainsRun, Client, Download, Error};
+use crate::{
+    get_json, get_response, schema::Run, wrapper::ContainsRun, Client, Download, Error,
+    UnidentifiableResource,
+};
 use http::{header::CONTENT_TYPE, Request};
-use snafu::ResultExt;
+use snafu::{OptionExt, ResultExt};
 use std::io::{self, Write};
 use std::ops::Deref;
 use url::Url;
+
+impl Run {
+    /// Downloads the splits for the Run.
+    pub async fn download(&self, client: &Client) -> Result<impl Deref<Target = [u8]>, Error> {
+        self::download(client, &self.id.as_ref().context(UnidentifiableResource)?).await
+    }
+
+    /// Gets a Run.
+    pub async fn get(client: &Client, id: &str, historic: bool) -> Result<Run, Error> {
+        self::get(client, id, historic).await
+    }
+
+    /// Uploads a run to Splits.io.
+    pub async fn upload(client: &Client, run: &[u8]) -> Result<UploadedRun, Error> {
+        self::upload(client, run).await
+    }
+
+    /// Uploads a run to Splits.io by using a RunWriter in order to write the request body.
+    pub async fn upload_lazy<E: std::error::Error>(
+        client: &Client,
+        write_run: impl FnOnce(&mut RunWriter) -> Result<(), E>,
+    ) -> Result<UploadedRun, Error> {
+        self::upload_lazy(client, write_run).await
+    }
+
+    /// Retrieves the public URL of the run. This may fail if the run is unidentifiable.
+    pub fn url(&self) -> Result<Url, Error> {
+        let mut url = Url::parse("https://splits.io").unwrap();
+        url.path_segments_mut()
+            .unwrap()
+            .push(&self.id.as_ref().context(UnidentifiableResource)?);
+        Ok(url)
+    }
+}
 
 /// Downloads the splits for a Run.
 pub async fn download(client: &Client, id: &str) -> Result<impl Deref<Target = [u8]>, Error> {
@@ -80,6 +117,28 @@ pub struct UploadedRun {
     pub claim_token: Box<str>,
 }
 
+impl UploadedRun {
+    /// Gets the uploaded run.
+    pub async fn get(&self, client: &Client, historic: bool) -> Result<Run, Error> {
+        Run::get(client, &self.id, historic).await
+    }
+
+    /// Retrieves the public URL of the uploaded run.
+    pub fn public_url(&self) -> Url {
+        let mut url = Url::parse("https://splits.io").unwrap();
+        url.path_segments_mut().unwrap().push(&self.id);
+        url
+    }
+
+    /// Retrieves the URL to claim the uploaded run.
+    pub fn claim_url(&self) -> Url {
+        let mut url = self.public_url();
+        url.query_pairs_mut()
+            .append_pair("claim_token", &self.claim_token);
+        url
+    }
+}
+
 /// Handles writing a run to the body of an upload request.
 pub struct RunWriter(Vec<u8>);
 
@@ -113,7 +172,7 @@ pub async fn upload_lazy<E: std::error::Error>(
             .unwrap(),
     )
     .await?;
-    // TODO: Unwrap
+    // FIXME: Unwrap
 
     let mut body = Vec::new();
 
