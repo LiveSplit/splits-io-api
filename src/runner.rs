@@ -15,6 +15,43 @@ use crate::{
 use http::Request;
 use url::Url;
 
+impl Runner {
+    /// Searches for a Runner based on the name of the runner.
+    pub async fn search(client: &Client, name: &str) -> Result<Vec<Runner>, Error> {
+        self::search(client, name).await
+    }
+
+    /// Gets the Runner that is associated with the current user.
+    pub async fn myself(client: &Client) -> Result<Runner, Error> {
+        self::myself(client).await
+    }
+
+    /// Gets a Runner based on the name of the runner.
+    pub async fn get(client: &Client, name: &str) -> Result<Runner, Error> {
+        self::get(client, name).await
+    }
+
+    /// Gets the Runs that are associated with the Runner.
+    pub async fn runs(&self, client: &Client) -> Result<Vec<Run>, Error> {
+        get_runs(client, &self.name).await
+    }
+
+    /// Gets the personal best Runs that are associated with the Runner.
+    pub async fn pbs(&self, client: &Client) -> Result<Vec<Run>, Error> {
+        get_pbs(client, &self.name).await
+    }
+
+    /// Gets the Games that are associated with the Runner.
+    pub async fn games(&self, client: &Client) -> Result<Vec<Game>, Error> {
+        get_games(client, &self.name).await
+    }
+
+    /// Gets the Categories that are associated with the Runner.
+    pub async fn categories(&self, client: &Client) -> Result<Vec<Category>, Error> {
+        get_categories(client, &self.name).await
+    }
+}
+
 /// Searches for a Runner based on the name of the runner.
 pub async fn search(client: &Client, name: &str) -> Result<Vec<Runner>, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/runners").unwrap();

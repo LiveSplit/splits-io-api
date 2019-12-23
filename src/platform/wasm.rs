@@ -138,9 +138,4 @@ impl Client {
 
         Ok(response)
     }
-
-    // pub async fn open_websocket(&self, url: &str) {
-    //     // TODO: wss:// vs. https://
-    //     let ws = WebSocket::new(url).map_err(|error| ReceiveResponse { error })?;
-    // }
 }

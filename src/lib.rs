@@ -10,34 +10,47 @@
 //! splits-io-api is a library that provides bindings for the Splits.io API for Rust.
 //!
 //! ```no_run
-//! # use splits_io_api::{category, game, runner, Client};
+//! # use splits_io_api::{Client, Runner};
+//! # use anyhow::Context;
 //! #
-//! # async fn query_api() {
+//! # async fn query_api() -> anyhow::Result<()> {
 //! // Create a Splits.io API client.
 //! let client = Client::new();
 //!
 //! // Search for a runner.
-//! let runners = runner::search(&client, "cryze").await.unwrap();
-//! let runner = runners.first().unwrap();
-//! let runner_name = &*runner.name;
-//! assert_eq!(runner_name, "cryze92");
+//! let runner = Runner::search(&client, "cryze")
+//!     .await?
+//!     .into_iter()
+//!     .next()
+//!     .context("There is no runner with that name")?;
+//!
+//! assert_eq!(&*runner.name, "cryze92");
 //!
 //! // Get the PBs for the runner.
-//! let runner_pbs = runner::get_pbs(&client, runner_name).await.unwrap();
-//! let first_pb = &*runner_pbs.first().unwrap();
+//! let first_pb = runner.pbs(&client)
+//!     .await?
+//!     .into_iter()
+//!     .next()
+//!     .context("This runner doesn't have any PBs")?;
 //!
 //! // Get the game for the PB.
-//! let pb_game = first_pb.game.as_ref().unwrap();
-//! let pb_game_shortname = pb_game.shortname.as_ref().unwrap();
-//! assert_eq!(pb_game_shortname.as_ref(), "tww");
+//! let game = first_pb.game.context("There is no game for the PB")?;
+//!
+//! assert_eq!(&*game.name, "The Legend of Zelda: The Wind Waker");
 //!
 //! // Get the categories for the game.
-//! let game_categories = game::get_categories(&client, pb_game_shortname).await.unwrap();
+//! let categories = game.categories(&client).await?;
 //!
 //! // Get the runs for the Any% category.
-//! let any_percent = game_categories.iter().find(|category| &*category.name == "Any%").unwrap();
-//! let any_percent_runs = category::get_runs(&client, &any_percent.id).await.unwrap();
-//! assert!(!any_percent_runs.is_empty());
+//! let runs = categories
+//!     .iter()
+//!     .find(|category| &*category.name == "Any%")
+//!     .context("Couldn't find category")?
+//!     .runs(&client)
+//!     .await?;
+//!
+//! assert!(!runs.is_empty());
+//! # Ok(())
 //! # }
 //! ```
 
@@ -94,7 +107,7 @@ impl Client {
 /// An error when making an API request.
 pub enum Error {
     /// An HTTP error outside of the API.
-    #[snafu(display("HTTP Status Code: {}", status.canonical_reason().unwrap_or_else(|| status.as_str())))]
+    #[snafu(display("HTTP Status: {}", status.canonical_reason().unwrap_or_else(|| status.as_str())))]
     Status {
         /// The HTTP status code of the error.
         status: StatusCode,
@@ -109,23 +122,26 @@ pub enum Error {
     },
     /// Failed downloading the response.
     Download {
-        /// The lower-level source of the error.
+        /// The reason why downloading the response failed.
         source: crate::platform::Error,
     },
     /// Failed to parse the response.
     Json {
-        /// The lower-level source of the error.
+        /// The reason why parsing the response failed.
         source: serde_json::Error,
     },
+    /// The resource can not be sufficiently identified for finding resources
+    /// attached to it.
+    UnidentifiableResource,
 }
 
 async fn get_response_unchecked(
     client: &Client,
     mut request: Request<Body>,
 ) -> Result<Response<Body>, Error> {
-    // TODO: Only for requests that need it.
+    // FIXME: Only for requests that need it.
     if let Some(access_token) = &client.access_token {
-        // TODO: Don't ignore error.
+        // FIXME: Don't ignore error.
         if let Ok(access_token) = access_token.parse() {
             request.headers_mut().insert(AUTHORIZATION, access_token);
         }

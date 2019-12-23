@@ -47,3 +47,4 @@ web-sys = { version = "0.3.32", features = ["Response", "Window", "RequestInit",
 
 [dev-dependencies]
 tokio = { version = "0.2", features = ["io-std", "macros"] }
+anyhow = "1.0.25"
