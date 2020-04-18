@@ -268,7 +268,8 @@ pub struct Segment {
     pub realtime_reduced: bool,
     /// The shortest duration the runner has ever gotten on this segment in realtime. Provided in
     /// milliseconds.
-    pub realtime_shortest_duration_ms: f64,
+    #[serde(default)]
+    pub realtime_shortest_duration_ms: Option<f64>,
     /// Whether or not this split was skipped in realtime -- some timers let the runner skip over a
     /// split in case they forgot to hit their split button on time. Beware that a skipped split's
     /// duration is considered 0, and instead is rolled into the following split.
