@@ -2,15 +2,19 @@
 //!
 //! [API Documentation](https://github.com/glacials/splits-io/blob/master/docs/api.md#run)
 
-use crate::platform::{recv_bytes, Body};
 use crate::{
-    get_json, get_response, schema::Run, wrapper::ContainsRun, Client, Download, Error,
-    UnidentifiableResource,
+    get_json, get_response,
+    platform::{recv_bytes, Body},
+    schema::Run,
+    wrapper::ContainsRun,
+    Client, Download, Error, UnidentifiableResource,
 };
 use http::{header::CONTENT_TYPE, Request};
 use snafu::{OptionExt, ResultExt};
-use std::io::{self, Write};
-use std::ops::Deref;
+use std::{
+    io::{self, Write},
+    ops::Deref,
+};
 use url::Url;
 
 impl Run {

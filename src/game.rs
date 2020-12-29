@@ -3,9 +3,9 @@
 //!
 //! [API Documentation](https://github.com/glacials/splits-io/blob/master/docs/api.md#game)
 
-use crate::platform::Body;
 use crate::{
     get_json,
+    platform::Body,
     wrapper::{ContainsCategories, ContainsGame, ContainsGames, ContainsRunners, ContainsRuns},
     Category, Client, Error, Game, Run, Runner, UnidentifiableResource,
 };
