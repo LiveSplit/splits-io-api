@@ -1,5 +1,6 @@
-use bytes::buf::BufExt;
 use http::{Request, Response};
+use hyper::body::Buf;
+
 #[cfg(all(
     any(target_os = "linux", target_family = "windows", target_os = "macos"),
     any(
@@ -38,6 +39,25 @@ pub struct Client {
 
 impl Client {
     pub fn new() -> Self {
+        #[cfg(all(
+            any(target_os = "linux", target_family = "windows", target_os = "macos"),
+            any(
+                target_arch = "x86",
+                target_arch = "x86_64",
+                target_arch = "arm",
+                target_arch = "aarch64",
+            ),
+        ))]
+        let https = HttpsConnector::with_native_roots();
+        #[cfg(not(all(
+            any(target_os = "linux", target_family = "windows", target_os = "macos"),
+            any(
+                target_arch = "x86",
+                target_arch = "x86_64",
+                target_arch = "arm",
+                target_arch = "aarch64",
+            ),
+        )))]
         let https = HttpsConnector::new();
         let client = hyper::Client::builder().build::<_, hyper::Body>(https);
         Self { client }

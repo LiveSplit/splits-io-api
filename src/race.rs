@@ -2,9 +2,9 @@
 //!
 //! [API Documentation](https://github.com/glacials/splits-io/blob/master/docs/api.md#race)
 
-use crate::platform::{recv_bytes, Body};
 use crate::{
     get_json, get_response,
+    platform::{recv_bytes, Body},
     wrapper::{
         ContainsChatMessage, ContainsChatMessages, ContainsEntries, ContainsEntry, ContainsRace,
         ContainsRaces,
@@ -185,10 +185,7 @@ pub enum Update<T> {
 
 impl<T> Update<T> {
     fn is_keep(&self) -> bool {
-        match self {
-            Update::Keep => true,
-            _ => false,
-        }
+        matches!(self, Update::Keep)
     }
 }
 

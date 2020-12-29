@@ -3,9 +3,9 @@
 //!
 //! [API Documentation](https://github.com/glacials/splits-io/blob/master/docs/api.md#runner)
 
-use crate::platform::Body;
 use crate::{
     get_json,
+    platform::Body,
     wrapper::{
         ContainsCategories, ContainsGames, ContainsPBs, ContainsRunner, ContainsRunners,
         ContainsRuns,
