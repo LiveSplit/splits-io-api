@@ -51,7 +51,7 @@ impl Client {
         let https = HttpsConnectorBuilder::new()
             .with_native_roots()
             .https_only()
-            .enable_http1()
+            .enable_http2()
             .build();
         #[cfg(not(all(
             any(target_os = "linux", target_family = "windows", target_os = "macos"),
