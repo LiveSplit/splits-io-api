@@ -20,7 +20,7 @@ use url::Url;
 impl Run {
     /// Downloads the splits for the Run.
     pub async fn download(&self, client: &Client) -> Result<impl Deref<Target = [u8]>, Error> {
-        self::download(client, &self.id.as_ref().context(UnidentifiableResource)?).await
+        self::download(client, self.id.as_ref().context(UnidentifiableResource)?).await
     }
 
     /// Gets a Run.
@@ -46,7 +46,7 @@ impl Run {
         let mut url = Url::parse("https://splits.io").unwrap();
         url.path_segments_mut()
             .unwrap()
-            .push(&self.id.as_ref().context(UnidentifiableResource)?);
+            .push(self.id.as_ref().context(UnidentifiableResource)?);
         Ok(url)
     }
 }
@@ -223,5 +223,5 @@ fn write_key_and_value(w: &mut impl Write, key: &str, value: &str) {
         "------WebKitFormBoundarymfBzYhzpfnJqay4s\r\nContent-Disposition: form-data; name=\"{}\"\r\n\r\n{}\r\n",
         key, value,
     )
-    .unwrap()
+    .unwrap();
 }
