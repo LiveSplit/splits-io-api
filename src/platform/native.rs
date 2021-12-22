@@ -10,7 +10,7 @@ use hyper::body::Buf;
         target_arch = "aarch64",
     ),
 ))]
-use hyper_rustls::HttpsConnector;
+use hyper_rustls::{HttpsConnector, HttpsConnectorBuilder};
 #[cfg(not(all(
     any(target_os = "linux", target_family = "windows", target_os = "macos"),
     any(
@@ -48,7 +48,11 @@ impl Client {
                 target_arch = "aarch64",
             ),
         ))]
-        let https = HttpsConnector::with_native_roots();
+        let https = HttpsConnectorBuilder::new()
+            .with_native_roots()
+            .https_only()
+            .enable_http2()
+            .build();
         #[cfg(not(all(
             any(target_os = "linux", target_family = "windows", target_os = "macos"),
             any(
