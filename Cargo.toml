@@ -23,7 +23,7 @@ include = [
 http = "0.2.0"
 serde = { version = "1.0.99", features = ["derive"] }
 serde_json = "1.0.40"
-snafu = { version = "0.6.0", default-features = false, features = ["std"] }
+snafu = { version = "0.7.4", default-features = false, features = ["std"] }
 url = "2.1.0"
 uuid = { version = "0.8.1", default-features = false, features = ["serde"] }
 
