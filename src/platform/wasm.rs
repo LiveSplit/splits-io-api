@@ -57,7 +57,7 @@ impl Client {
     }
 
     pub async fn request(&self, request: Request<Body>) -> Result<Response<Body>, Error> {
-        let window = window().context(NoWindow)?;
+        let window = window().context(NoWindowSnafu)?;
 
         let (
             Parts {

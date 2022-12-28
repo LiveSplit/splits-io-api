@@ -20,7 +20,7 @@ jobs:
           - i686-unknown-linux-gnu
           - x86_64-unknown-linux-gnu
           - i686-pc-windows-msvc
-          - i686-pc-windows-gnu
+          # - i686-pc-windows-gnu
           - x86_64-pc-windows-msvc
           - x86_64-pc-windows-gnu
           - x86_64-apple-darwin
@@ -42,10 +42,11 @@ jobs:
           os: windows-latest
           cargo_dir: ''
           toolchain: stable
-        - target: i686-pc-windows-gnu
-          os: windows-latest
-          cargo_dir: ''
-          toolchain: stable-i686-pc-windows-gnu
+        # The windows crate doesn't work with this target atm.
+        # - target: i686-pc-windows-gnu
+        #   os: windows-latest
+        #   cargo_dir: ''
+        #   toolchain: stable-i686-pc-windows-gnu
         - target: x86_64-pc-windows-msvc
           os: windows-latest
           cargo_dir: ''
@@ -60,7 +61,7 @@ jobs:
           toolchain: stable
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v3
     - name: Install gcc-multilib
       if: matrix.target == 'i686-unknown-linux-gnu'
       run: sudo apt-get update && sudo apt-get install -y --no-install-recommends g++-multilib

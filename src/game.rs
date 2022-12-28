@@ -7,7 +7,7 @@ use crate::{
     get_json,
     platform::Body,
     wrapper::{ContainsCategories, ContainsGame, ContainsGames, ContainsRunners, ContainsRuns},
-    Category, Client, Error, Game, Run, Runner, UnidentifiableResource,
+    Category, Client, Error, Game, Run, Runner, UnidentifiableResourceSnafu,
 };
 use http::Request;
 use snafu::OptionExt;
@@ -28,7 +28,9 @@ impl Game {
     pub async fn categories(&self, client: &Client) -> Result<Vec<Category>, Error> {
         get_categories(
             client,
-            self.shortname.as_ref().context(UnidentifiableResource)?,
+            self.shortname
+                .as_ref()
+                .context(UnidentifiableResourceSnafu)?,
         )
         .await
     }
@@ -37,7 +39,9 @@ impl Game {
     pub async fn runs(&self, client: &Client) -> Result<Vec<Run>, Error> {
         get_runs(
             client,
-            self.shortname.as_ref().context(UnidentifiableResource)?,
+            self.shortname
+                .as_ref()
+                .context(UnidentifiableResourceSnafu)?,
         )
         .await
     }
@@ -46,7 +50,9 @@ impl Game {
     pub async fn runners(&self, client: &Client) -> Result<Vec<Runner>, Error> {
         get_runners(
             client,
-            self.shortname.as_ref().context(UnidentifiableResource)?,
+            self.shortname
+                .as_ref()
+                .context(UnidentifiableResourceSnafu)?,
         )
         .await
     }
