@@ -7,7 +7,7 @@ use crate::{
     platform::{recv_bytes, Body},
     schema::Run,
     wrapper::ContainsRun,
-    Client, Download, Error, UnidentifiableResource,
+    Client, DownloadSnafu, Error, UnidentifiableResourceSnafu,
 };
 use http::{header::CONTENT_TYPE, Request};
 use snafu::{OptionExt, ResultExt};
@@ -20,7 +20,11 @@ use url::Url;
 impl Run {
     /// Downloads the splits for the Run.
     pub async fn download(&self, client: &Client) -> Result<impl Deref<Target = [u8]>, Error> {
-        self::download(client, self.id.as_ref().context(UnidentifiableResource)?).await
+        self::download(
+            client,
+            self.id.as_ref().context(UnidentifiableResourceSnafu)?,
+        )
+        .await
     }
 
     /// Gets a Run.
@@ -46,7 +50,7 @@ impl Run {
         let mut url = Url::parse("https://splits.io").unwrap();
         url.path_segments_mut()
             .unwrap()
-            .push(self.id.as_ref().context(UnidentifiableResource)?);
+            .push(self.id.as_ref().context(UnidentifiableResourceSnafu)?);
         Ok(url)
     }
 }
@@ -65,7 +69,9 @@ pub async fn download(client: &Client, id: &str) -> Result<impl Deref<Target = [
     )
     .await?;
 
-    recv_bytes(response.into_body()).await.context(Download)
+    recv_bytes(response.into_body())
+        .await
+        .context(DownloadSnafu)
 }
 
 /// Gets a Run.

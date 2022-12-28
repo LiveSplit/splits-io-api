@@ -147,8 +147,7 @@ async fn get_response_unchecked(
         }
     }
 
-    let response = client.client.request(request).await.context(Download)?;
-    Ok(response)
+    client.client.request(request).await.context(DownloadSnafu)
 }
 
 async fn get_response(client: &Client, request: Request<Body>) -> Result<Response<Body>, Error> {
@@ -173,8 +172,10 @@ async fn get_json<T: serde::de::DeserializeOwned>(
     request: Request<Body>,
 ) -> Result<T, Error> {
     let response = get_response(client, request).await?;
-    let reader = recv_reader(response.into_body()).await.context(Download)?;
-    serde_json::from_reader(reader).context(Json)
+    let reader = recv_reader(response.into_body())
+        .await
+        .context(DownloadSnafu)?;
+    serde_json::from_reader(reader).context(JsonSnafu)
 }
 
 #[derive(serde::Deserialize)]
