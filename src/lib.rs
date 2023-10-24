@@ -178,7 +178,7 @@ async fn get_json<T: serde::de::DeserializeOwned>(
     serde_json::from_reader(reader).context(JsonSnafu)
 }
 
-#[derive(serde::Deserialize)]
+#[derive(serde_derive::Deserialize)]
 struct ApiError {
     #[serde(alias = "message")]
     error: Box<str>,

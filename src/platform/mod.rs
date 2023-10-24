@@ -1,9 +1,9 @@
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 mod native;
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub use self::native::*;
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(target_family = "wasm")]
 mod wasm;
-#[cfg(target_arch = "wasm32")]
+#[cfg(target_family = "wasm")]
 pub use self::wasm::*;

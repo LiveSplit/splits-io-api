@@ -3,7 +3,7 @@ use uuid::Uuid;
 /// A Category is a ruleset for a Game (Any%, 100%, MST, etc.) and an optional container for Runs.
 ///
 /// [API Documentation](https://github.com/glacials/splits-io/blob/master/docs/api.md#category)
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde_derive::Deserialize)]
 pub struct Category {
     /// The time and date at which this category was created on Splits.io. This field conforms to
     /// ISO 8601.
@@ -20,7 +20,7 @@ pub struct Category {
 /// A Chat Message is a shortform message sent by a user to a Race
 ///
 /// [API Documentation](https://github.com/glacials/splits-io/blob/master/docs/api.md#chat-message)
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde_derive::Deserialize)]
 pub struct ChatMessage {
     /// The contents of the message.
     pub body: Box<str>,
@@ -39,7 +39,7 @@ pub struct ChatMessage {
 /// An Entry represents a Runner's participation in a Race or a ghost of a past Run.
 ///
 /// [API Documentation](https://github.com/glacials/splits-io/blob/master/docs/api.md#entry)
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde_derive::Deserialize)]
 pub struct Entry {
     /// The time and date at which this Entry was created on Splits.io. This field conforms to ISO
     /// 8601.
@@ -77,7 +77,7 @@ pub struct Entry {
 /// A Game is a collection of information about a game, and a container for Categories.
 ///
 /// [API Documentation](https://github.com/glacials/splits-io/blob/master/docs/api.md#game)
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde_derive::Deserialize)]
 pub struct Game {
     /// The known speedrun categories for this game.
     pub categories: Option<Vec<Category>>,
@@ -100,7 +100,7 @@ pub struct Game {
 /// Information about a past attempt associated with a Run.
 ///
 /// [API Documentation](https://github.com/glacials/splits-io/blob/master/docs/api.md#history)
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde_derive::Deserialize)]
 pub struct RunItemHistories {
     /// The corresponding attempt number this attempt was.
     pub attempt_number: u32,
@@ -113,7 +113,7 @@ pub struct RunItemHistories {
 /// A Run maps 1:1 to an uploaded splits file.
 ///
 /// [API Documentation](https://github.com/glacials/splits-io/blob/master/docs/api.md#run)
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde_derive::Deserialize)]
 pub struct Run {
     /// The number of run attempts recorded by the timer that generated the run's source file, if
     /// supported by the source timer.
@@ -178,7 +178,7 @@ pub struct Run {
 /// A Runner is a user who has at least one run tied to their account.
 ///
 /// [API Documentation](https://github.com/glacials/splits-io/blob/master/docs/api.md#runner)
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde_derive::Deserialize)]
 pub struct Runner {
     /// The avatar of the user.
     #[serde(default)]
@@ -204,7 +204,7 @@ pub struct Runner {
 /// Information about a past attempt of a segment.
 ///
 /// [API Documentation](https://github.com/glacials/splits-io/blob/master/docs/api.md#history)
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde_derive::Deserialize)]
 pub struct SegmentItemHistories {
     /// The corresponding attempt number this attempt was.
     pub attempt_number: u32,
@@ -217,7 +217,7 @@ pub struct SegmentItemHistories {
 /// A Segment maps to a single piece of a run, also called a split.
 ///
 /// [API Documentation](https://github.com/glacials/splits-io/blob/master/docs/api.md#segment)
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde_derive::Deserialize)]
 pub struct Segment {
     /// Gametime duration in milliseconds of the segment.
     #[serde(default)]
@@ -284,7 +284,7 @@ pub struct Segment {
 /// A Race is a live competition between multiple Runners who share a start time for their run.
 ///
 /// [API Documentation](https://github.com/glacials/splits-io/blob/master/docs/api.md#race)
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde_derive::Deserialize)]
 pub struct Race {
     /// Any attachments supplied by the race creator for the benefit of other entrants (e.g. for
     /// randomizers).
@@ -324,7 +324,7 @@ pub struct Race {
 /// A file that is attached to a Race.
 ///
 /// [API Documentation](https://github.com/glacials/splits-io/blob/master/docs/api.md#attachment)
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde_derive::Deserialize)]
 pub struct Attachment {
     /// The unique ID of the attachment.
     pub id: Uuid,
@@ -337,7 +337,7 @@ pub struct Attachment {
 }
 
 /// The permission set for a Race.
-#[derive(Copy, Clone, Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Copy, Clone, Debug, serde_derive::Deserialize, serde_derive::Serialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Visibility {
     /// Anyone can join the race.
