@@ -159,7 +159,7 @@ pub async fn get(client: &Client, id: Uuid) -> Result<Race, Error> {
 }
 
 /// The settings for a Race.
-#[derive(Default, serde::Serialize)]
+#[derive(Default, serde_derive::Serialize)]
 pub struct Settings<'a> {
     /// The ID of the Game that is being raced.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -176,8 +176,10 @@ pub struct Settings<'a> {
 }
 
 /// The type of update to perform on the given property.
+#[derive(Default)]
 pub enum Update<T> {
     /// Keep the previous value of the property.
+    #[default]
     Keep,
     /// Clear the value of the property.
     Clear,
@@ -188,12 +190,6 @@ pub enum Update<T> {
 impl<T> Update<T> {
     fn is_keep(&self) -> bool {
         matches!(self, Update::Keep)
-    }
-}
-
-impl<T> Default for Update<T> {
-    fn default() -> Self {
-        Update::Keep
     }
 }
 
@@ -210,7 +206,7 @@ impl<T: serde::Serialize> serde::Serialize for Update<T> {
 }
 
 /// The new properties to use for a Race when performing an update.
-#[derive(Default, serde::Serialize)]
+#[derive(Default, serde_derive::Serialize)]
 pub struct UpdateSettings<'a> {
     /// The update to perform for the ID of the Game that is being raced.
     #[serde(skip_serializing_if = "Update::is_keep")]
@@ -305,7 +301,7 @@ pub enum JoinAs<'a> {
     Ghost(&'a str),
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde_derive::Serialize)]
 struct JoinToken<'a> {
     #[serde(skip_serializing_if = "Option::is_none")]
     join_token: Option<&'a str>,
@@ -313,7 +309,7 @@ struct JoinToken<'a> {
     entry: Option<JoinEntry<'a>>,
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde_derive::Serialize)]
 struct JoinEntry<'a> {
     run_id: &'a str,
 }
@@ -376,22 +372,22 @@ pub async fn leave(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<(),
     Ok(())
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde_derive::Serialize)]
 struct UpdateEntry<T> {
     entry: T,
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde_derive::Serialize)]
 struct ReadyState {
     readied_at: Option<&'static str>,
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde_derive::Serialize)]
 struct FinishState {
     finished_at: Option<&'static str>,
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde_derive::Serialize)]
 struct ForfeitState {
     forfeited_at: Option<&'static str>,
 }
@@ -599,12 +595,12 @@ pub async fn get_chat(client: &Client, id: Uuid) -> Result<Vec<ChatMessage>, Err
     Ok(chat_messages)
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde_derive::Serialize)]
 struct SendMessage<'a> {
     chat_message: SendMessageBody<'a>,
 }
 
-#[derive(serde::Serialize)]
+#[derive(serde_derive::Serialize)]
 struct SendMessageBody<'a> {
     body: &'a str,
 }

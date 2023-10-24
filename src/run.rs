@@ -91,20 +91,20 @@ pub async fn get(client: &Client, id: &str, historic: bool) -> Result<Run, Error
     Ok(run)
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde_derive::Deserialize)]
 struct UploadResponse {
     id: Box<str>,
     claim_token: Box<str>,
     presigned_request: PresignedRequest,
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, serde_derive::Deserialize)]
 struct PresignedRequest {
     uri: Box<str>,
     fields: PresignedRequestFields,
 }
 
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, serde_derive::Deserialize, serde_derive::Serialize)]
 struct PresignedRequestFields {
     key: Box<str>,
     policy: Box<str>,
