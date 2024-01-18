@@ -13,7 +13,7 @@ async fn can_query_run() -> Result<()> {
 
 #[tokio::test]
 async fn the_example_actually_works() -> Result<()> {
-    // Create a Splits.io API client.
+    // Create a splits.io API client.
     let client = Client::new();
 
     // Search for a runner.

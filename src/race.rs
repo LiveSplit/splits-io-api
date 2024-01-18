@@ -4,21 +4,18 @@
 
 use crate::{
     get_json, get_response,
-    platform::{recv_bytes, Body},
     wrapper::{
         ContainsChatMessage, ContainsChatMessages, ContainsEntries, ContainsEntry, ContainsRace,
         ContainsRaces,
     },
-    Attachment, ChatMessage, Client, DownloadSnafu, Entry, Error, Race, Visibility,
+    Attachment, ChatMessage, Client, Entry, Error, Race, Visibility,
 };
-use http::{header::CONTENT_TYPE, Request};
-use snafu::ResultExt;
+use reqwest::Url;
 use std::ops::Deref;
-use url::Url;
 use uuid::Uuid;
 
 impl Race {
-    /// Gets all the currently active Races on Splits.io.
+    /// Gets all the currently active Races on splits.io.
     pub async fn get_active(client: &Client) -> Result<Vec<Race>, Error> {
         self::get_active(client).await
     }
@@ -115,27 +112,18 @@ impl Race {
 impl Attachment {
     /// Downloads the attachment.
     pub async fn download(&self, client: &Client) -> Result<impl Deref<Target = [u8]>, Error> {
-        let response = get_response(
-            client,
-            Request::get(&*self.url).body(Body::empty()).unwrap(),
-        )
-        .await?;
-
-        recv_bytes(response.into_body())
+        get_response(client, client.client.get(&*self.url))
+            .await?
+            .bytes()
             .await
-            .context(DownloadSnafu)
+            .map_err(|source| Error::Download { source })
     }
 }
 
-/// Gets all the currently active Races on Splits.io.
+/// Gets all the currently active Races on splits.io.
 pub async fn get_active(client: &Client) -> Result<Vec<Race>, Error> {
-    let ContainsRaces { races } = get_json(
-        client,
-        Request::get("https://splits.io/api/v4/races")
-            .body(Body::empty())
-            .unwrap(),
-    )
-    .await?;
+    let ContainsRaces { races } =
+        get_json(client, client.client.get("https://splits.io/api/v4/races")).await?;
 
     Ok(races)
 }
@@ -149,11 +137,7 @@ pub async fn get(client: &Client, id: Uuid) -> Result<Race, Error> {
         .unwrap()
         .push(id.hyphenated().encode_lower(&mut Uuid::encode_buffer()));
 
-    let ContainsRace { race } = get_json(
-        client,
-        Request::get(url.as_str()).body(Body::empty()).unwrap(),
-    )
-    .await?;
+    let ContainsRace { race } = get_json(client, client.client.get(url)).await?;
 
     Ok(race)
 }
@@ -188,7 +172,7 @@ pub enum Update<T> {
 }
 
 impl<T> Update<T> {
-    fn is_keep(&self) -> bool {
+    const fn is_keep(&self) -> bool {
         matches!(self, Update::Keep)
     }
 }
@@ -226,10 +210,10 @@ pub struct UpdateSettings<'a> {
 pub async fn create(client: &Client, settings: Settings<'_>) -> Result<Race, Error> {
     let ContainsRace { race } = get_json(
         client,
-        Request::post("https://splits.io/api/v4/races")
-            .header(CONTENT_TYPE, "application/json")
-            .body(Body::from(serde_json::to_vec(&settings).unwrap()))
-            .unwrap(),
+        client
+            .client
+            .post("https://splits.io/api/v4/races")
+            .json(&settings),
     )
     .await?;
 
@@ -247,14 +231,7 @@ pub async fn update(
         .unwrap()
         .push(id.hyphenated().encode_lower(&mut Uuid::encode_buffer()));
 
-    let ContainsRace { race } = get_json(
-        client,
-        Request::patch(url.as_str())
-            .header(CONTENT_TYPE, "application/json")
-            .body(Body::from(serde_json::to_vec(&settings).unwrap()))
-            .unwrap(),
-    )
-    .await?;
+    let ContainsRace { race } = get_json(client, client.client.patch(url).json(&settings)).await?;
 
     Ok(race)
 }
@@ -267,11 +244,7 @@ pub async fn get_entries(client: &Client, id: Uuid) -> Result<Vec<Entry>, Error>
         "entries",
     ]);
 
-    let ContainsEntries { entries } = get_json(
-        client,
-        Request::get(url.as_str()).body(Body::empty()).unwrap(),
-    )
-    .await?;
+    let ContainsEntries { entries } = get_json(client, client.client.get(url)).await?;
 
     Ok(entries)
 }
@@ -284,11 +257,7 @@ pub async fn get_entry(client: &Client, id: Uuid) -> Result<Entry, Error> {
         "entry",
     ]);
 
-    let ContainsEntry { entry } = get_json(
-        client,
-        Request::get(url.as_str()).body(Body::empty()).unwrap(),
-    )
-    .await?;
+    let ContainsEntry { entry } = get_json(client, client.client.get(url)).await?;
 
     Ok(entry)
 }
@@ -331,19 +300,13 @@ pub async fn join(
 
     let ContainsEntry { entry } = get_json(
         client,
-        Request::post(url.as_str())
-            .header(CONTENT_TYPE, "application/json")
-            .body(Body::from(
-                serde_json::to_vec(&JoinToken {
-                    join_token,
-                    entry: match join_as {
-                        JoinAs::Myself => None,
-                        JoinAs::Ghost(run_id) => Some(JoinEntry { run_id }),
-                    },
-                })
-                .unwrap(),
-            ))
-            .unwrap(),
+        client.client.post(url).json(&JoinToken {
+            join_token,
+            entry: match join_as {
+                JoinAs::Myself => None,
+                JoinAs::Ghost(run_id) => Some(JoinEntry { run_id }),
+            },
+        }),
     )
     .await?;
 
@@ -363,11 +326,7 @@ pub async fn leave(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<(),
             .encode_lower(&mut Uuid::encode_buffer()),
     ]);
 
-    get_response(
-        client,
-        Request::delete(url.as_str()).body(Body::empty()).unwrap(),
-    )
-    .await?;
+    get_response(client, client.client.delete(url)).await?;
 
     Ok(())
 }
@@ -407,17 +366,11 @@ pub async fn ready_up(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<
 
     let ContainsEntry { entry } = get_json(
         client,
-        Request::patch(url.as_str())
-            .header(CONTENT_TYPE, "application/json")
-            .body(Body::from(
-                serde_json::to_vec(&UpdateEntry {
-                    entry: ReadyState {
-                        readied_at: Some("now"),
-                    },
-                })
-                .unwrap(),
-            ))
-            .unwrap(),
+        client.client.patch(url).json(&UpdateEntry {
+            entry: ReadyState {
+                readied_at: Some("now"),
+            },
+        }),
     )
     .await?;
 
@@ -439,15 +392,9 @@ pub async fn unready(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<E
 
     let ContainsEntry { entry } = get_json(
         client,
-        Request::patch(url.as_str())
-            .header(CONTENT_TYPE, "application/json")
-            .body(Body::from(
-                serde_json::to_vec(&UpdateEntry {
-                    entry: ReadyState { readied_at: None },
-                })
-                .unwrap(),
-            ))
-            .unwrap(),
+        client.client.patch(url).json(&UpdateEntry {
+            entry: ReadyState { readied_at: None },
+        }),
     )
     .await?;
 
@@ -469,17 +416,11 @@ pub async fn finish(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<En
 
     let ContainsEntry { entry } = get_json(
         client,
-        Request::patch(url.as_str())
-            .header(CONTENT_TYPE, "application/json")
-            .body(Body::from(
-                serde_json::to_vec(&UpdateEntry {
-                    entry: FinishState {
-                        finished_at: Some("now"),
-                    },
-                })
-                .unwrap(),
-            ))
-            .unwrap(),
+        client.client.patch(url).json(&UpdateEntry {
+            entry: FinishState {
+                finished_at: Some("now"),
+            },
+        }),
     )
     .await?;
 
@@ -501,15 +442,9 @@ pub async fn undo_finish(client: &Client, race_id: Uuid, entry_id: Uuid) -> Resu
 
     let ContainsEntry { entry } = get_json(
         client,
-        Request::patch(url.as_str())
-            .header(CONTENT_TYPE, "application/json")
-            .body(Body::from(
-                serde_json::to_vec(&UpdateEntry {
-                    entry: FinishState { finished_at: None },
-                })
-                .unwrap(),
-            ))
-            .unwrap(),
+        client.client.patch(url).json(&UpdateEntry {
+            entry: FinishState { finished_at: None },
+        }),
     )
     .await?;
 
@@ -531,17 +466,11 @@ pub async fn forfeit(client: &Client, race_id: Uuid, entry_id: Uuid) -> Result<E
 
     let ContainsEntry { entry } = get_json(
         client,
-        Request::patch(url.as_str())
-            .header(CONTENT_TYPE, "application/json")
-            .body(Body::from(
-                serde_json::to_vec(&UpdateEntry {
-                    entry: ForfeitState {
-                        forfeited_at: Some("now"),
-                    },
-                })
-                .unwrap(),
-            ))
-            .unwrap(),
+        client.client.patch(url).json(&UpdateEntry {
+            entry: ForfeitState {
+                forfeited_at: Some("now"),
+            },
+        }),
     )
     .await?;
 
@@ -563,15 +492,9 @@ pub async fn undo_forfeit(client: &Client, race_id: Uuid, entry_id: Uuid) -> Res
 
     let ContainsEntry { entry } = get_json(
         client,
-        Request::patch(url.as_str())
-            .header(CONTENT_TYPE, "application/json")
-            .body(Body::from(
-                serde_json::to_vec(&UpdateEntry {
-                    entry: ForfeitState { forfeited_at: None },
-                })
-                .unwrap(),
-            ))
-            .unwrap(),
+        client.client.patch(url).json(&UpdateEntry {
+            entry: ForfeitState { forfeited_at: None },
+        }),
     )
     .await?;
 
@@ -586,11 +509,7 @@ pub async fn get_chat(client: &Client, id: Uuid) -> Result<Vec<ChatMessage>, Err
         "chat",
     ]);
 
-    let ContainsChatMessages { chat_messages } = get_json(
-        client,
-        Request::get(url.as_str()).body(Body::empty()).unwrap(),
-    )
-    .await?;
+    let ContainsChatMessages { chat_messages } = get_json(client, client.client.get(url)).await?;
 
     Ok(chat_messages)
 }
@@ -619,15 +538,9 @@ pub async fn send_chat_message(
 
     let ContainsChatMessage { chat_message } = get_json(
         client,
-        Request::post(url.as_str())
-            .header(CONTENT_TYPE, "application/json")
-            .body(Body::from(
-                serde_json::to_vec(&SendMessage {
-                    chat_message: SendMessageBody { body: message },
-                })
-                .unwrap(),
-            ))
-            .unwrap(),
+        client.client.post(url).json(&SendMessage {
+            chat_message: SendMessageBody { body: message },
+        }),
     )
     .await?;
 

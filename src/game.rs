@@ -5,13 +5,10 @@
 
 use crate::{
     get_json,
-    platform::Body,
     wrapper::{ContainsCategories, ContainsGame, ContainsGames, ContainsRunners, ContainsRuns},
-    Category, Client, Error, Game, Run, Runner, UnidentifiableResourceSnafu,
+    Category, Client, Error, Game, Run, Runner,
 };
-use http::Request;
-use snafu::OptionExt;
-use url::Url;
+use reqwest::Url;
 
 impl Game {
     /// Searches for a Game based on the name of the game.
@@ -29,8 +26,8 @@ impl Game {
         get_categories(
             client,
             self.shortname
-                .as_ref()
-                .context(UnidentifiableResourceSnafu)?,
+                .as_deref()
+                .ok_or(Error::UnidentifiableResource)?,
         )
         .await
     }
@@ -40,8 +37,8 @@ impl Game {
         get_runs(
             client,
             self.shortname
-                .as_ref()
-                .context(UnidentifiableResourceSnafu)?,
+                .as_deref()
+                .ok_or(Error::UnidentifiableResource)?,
         )
         .await
     }
@@ -51,8 +48,8 @@ impl Game {
         get_runners(
             client,
             self.shortname
-                .as_ref()
-                .context(UnidentifiableResourceSnafu)?,
+                .as_deref()
+                .ok_or(Error::UnidentifiableResource)?,
         )
         .await
     }
@@ -63,11 +60,7 @@ pub async fn search(client: &Client, name: &str) -> Result<Vec<Game>, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/games").unwrap();
     url.query_pairs_mut().append_pair("search", name);
 
-    let ContainsGames { games } = get_json(
-        client,
-        Request::get(url.as_str()).body(Body::empty()).unwrap(),
-    )
-    .await?;
+    let ContainsGames { games } = get_json(client, client.client.get(url)).await?;
 
     Ok(games)
 }
@@ -77,11 +70,7 @@ pub async fn get(client: &Client, shortname: &str) -> Result<Game, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/games").unwrap();
     url.path_segments_mut().unwrap().push(shortname);
 
-    let ContainsGame { game } = get_json(
-        client,
-        Request::get(url.as_str()).body(Body::empty()).unwrap(),
-    )
-    .await?;
+    let ContainsGame { game } = get_json(client, client.client.get(url)).await?;
 
     Ok(game)
 }
@@ -93,11 +82,7 @@ pub async fn get_categories(client: &Client, shortname: &str) -> Result<Vec<Cate
         .unwrap()
         .extend(&[shortname, "categories"]);
 
-    let ContainsCategories { categories } = get_json(
-        client,
-        Request::get(url.as_str()).body(Body::empty()).unwrap(),
-    )
-    .await?;
+    let ContainsCategories { categories } = get_json(client, client.client.get(url)).await?;
 
     Ok(categories)
 }
@@ -109,11 +94,7 @@ pub async fn get_runs(client: &Client, shortname: &str) -> Result<Vec<Run>, Erro
         .unwrap()
         .extend(&[shortname, "runs"]);
 
-    let ContainsRuns { runs } = get_json(
-        client,
-        Request::get(url.as_str()).body(Body::empty()).unwrap(),
-    )
-    .await?;
+    let ContainsRuns { runs } = get_json(client, client.client.get(url)).await?;
 
     Ok(runs)
 }
@@ -125,11 +106,7 @@ pub async fn get_runners(client: &Client, shortname: &str) -> Result<Vec<Runner>
         .unwrap()
         .extend(&[shortname, "runners"]);
 
-    let ContainsRunners { runners } = get_json(
-        client,
-        Request::get(url.as_str()).body(Body::empty()).unwrap(),
-    )
-    .await?;
+    let ContainsRunners { runners } = get_json(client, client.client.get(url)).await?;
 
     Ok(runners)
 }

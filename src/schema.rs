@@ -5,14 +5,14 @@ use uuid::Uuid;
 /// [API Documentation](https://github.com/glacials/splits-io/blob/master/docs/api.md#category)
 #[derive(Debug, serde_derive::Deserialize)]
 pub struct Category {
-    /// The time and date at which this category was created on Splits.io. This field conforms to
+    /// The time and date at which this category was created on splits.io. This field conforms to
     /// ISO 8601.
     pub created_at: Box<str>,
     /// The unique ID of the category.
     pub id: Box<str>,
     /// The name of the category.
     pub name: Box<str>,
-    /// The time and date at which this category was most recently modified on Splits.io. This field
+    /// The time and date at which this category was most recently modified on splits.io. This field
     /// conforms to ISO 8601.
     pub updated_at: Box<str>,
 }
@@ -24,12 +24,12 @@ pub struct Category {
 pub struct ChatMessage {
     /// The contents of the message.
     pub body: Box<str>,
-    /// The time and date at which this message was created on Splits.io. This field conforms to ISO
+    /// The time and date at which this message was created on splits.io. This field conforms to ISO
     /// 8601.
     pub created_at: Box<str>,
     /// Boolean indicating whether the sender was in the race when the message was sent.
     pub from_entrant: bool,
-    /// The time and date at which this message was most recently modified on Splits.io. This field
+    /// The time and date at which this message was most recently modified on splits.io. This field
     /// conforms to ISO 8601.
     pub updated_at: Box<str>,
     /// The Runner that sent the message.
@@ -41,7 +41,7 @@ pub struct ChatMessage {
 /// [API Documentation](https://github.com/glacials/splits-io/blob/master/docs/api.md#entry)
 #[derive(Debug, serde_derive::Deserialize)]
 pub struct Entry {
-    /// The time and date at which this Entry was created on Splits.io. This field conforms to ISO
+    /// The time and date at which this Entry was created on splits.io. This field conforms to ISO
     /// 8601.
     pub created_at: Box<str>,
     /// The user that created this Entry; can be different from runner if the Entry is a ghost.
@@ -69,7 +69,7 @@ pub struct Entry {
     /// The user participating in the race. If the entry is a ghost, this can differ from the
     /// creator.
     pub runner: Runner,
-    /// The time and date at which this Entry was most recently modified on Splits.io. This field
+    /// The time and date at which this Entry was most recently modified on splits.io. This field
     /// conforms to ISO 8601.
     pub updated_at: Box<str>,
 }
@@ -81,7 +81,7 @@ pub struct Entry {
 pub struct Game {
     /// The known speedrun categories for this game.
     pub categories: Option<Vec<Category>>,
-    /// The time and date at which this game was created on Splits.io. This field conforms to ISO
+    /// The time and date at which this game was created on splits.io. This field conforms to ISO
     /// 8601.
     pub created_at: Box<str>,
     /// The unique ID of the game.
@@ -92,7 +92,7 @@ pub struct Game {
     /// to match with those on SpeedRunsLive and/or Speedrun.com.
     #[serde(default)]
     pub shortname: Option<Box<str>>,
-    /// The time and date at which this game was most recently modified on Splits.io. This field
+    /// The time and date at which this game was most recently modified on splits.io. This field
     /// conforms to ISO 8601.
     pub updated_at: Box<str>,
 }
@@ -122,7 +122,7 @@ pub struct Run {
     /// The category which was run, if it was supplied by the runner and determined from the source
     /// file.
     pub category: Option<Category>,
-    /// The time and date at which this run's source file was uploaded to Splits.io. This field
+    /// The time and date at which this run's source file was uploaded to splits.io. This field
     /// conforms to ISO 8601.
     pub created_at: Box<str>,
     /// The timing method used for the run. Will be either real or game.
@@ -140,12 +140,12 @@ pub struct Run {
     /// by the runner's timer into the source file. The last item is the most recent one. This field
     /// is only nonempty if the source timer records history.
     pub histories: Option<Vec<RunItemHistories>>,
-    /// Unique ID for identifying the run on Splits.io. This can be used to construct a user-facing
+    /// Unique ID for identifying the run on splits.io. This can be used to construct a user-facing
     /// URL or an API-facing one.
     #[serde(default)]
     pub id: Option<Box<str>>,
     /// A screenshot of the timer after a finished run, if it was supplied by the runner. This is
-    /// typically supplied automatically by timers which support auto-uploading runs to Splits.io.
+    /// typically supplied automatically by timers which support auto-uploading runs to splits.io.
     #[serde(default)]
     pub image_url: Option<Box<str>>,
     /// The name of the timer with which the run was recorded. This is typically an all lowercase,
@@ -165,7 +165,7 @@ pub struct Run {
     /// manually.
     #[serde(default)]
     pub srdc_id: Option<Box<str>>,
-    /// The time and date at which this run was most recently modified on Splits.io (modify events
+    /// The time and date at which this run was most recently modified on splits.io (modify events
     /// include disowning, adding a video or Speedrun.com association, and changing the run's
     /// game/category). This field conforms to ISO 8601.
     pub updated_at: Box<str>,
@@ -183,20 +183,20 @@ pub struct Runner {
     /// The avatar of the user.
     #[serde(default)]
     pub avatar: Option<Box<str>>,
-    /// The time and date at which this user first authenticated with Splits.io. This field conforms
+    /// The time and date at which this user first authenticated with splits.io. This field conforms
     /// to ISO 8601.
     pub created_at: Box<str>,
     /// The display name of the user.
     pub display_name: Option<Box<str>>,
     /// The unique ID of the user.
     pub id: Box<str>,
-    /// The Splits.io username of the user.
+    /// The splits.io username of the user.
     pub name: Box<str>,
     /// The Twitch ID of the user.
     pub twitch_id: Option<Box<str>>,
     /// The Twitch name of the user.
     pub twitch_name: Option<Box<str>>,
-    /// The time and date at which this user was most recently modified on Splits.io. This field
+    /// The time and date at which this user was most recently modified on splits.io. This field
     /// conforms to ISO 8601.
     pub updated_at: Box<str>,
 }
@@ -293,7 +293,7 @@ pub struct Race {
     pub category: Option<Category>,
     /// Chat messages for the Race. Only present when fetching the Race individually.
     pub chat_messages: Vec<ChatMessage>,
-    /// The time and date at which this Race was created on Splits.io. This field conforms to ISO
+    /// The time and date at which this Race was created on splits.io. This field conforms to ISO
     /// 8601.
     pub created_at: Box<str>,
     /// All Entries currently in the Race.
@@ -311,10 +311,10 @@ pub struct Race {
     pub owner: Runner,
     /// The user-friendly URL to the Race, to be given to a user when necessary.
     pub path: Box<str>,
-    /// The time and date at which this Race was started on Splits.io. This field conforms to ISO
+    /// The time and date at which this Race was started on splits.io. This field conforms to ISO
     /// 8601.
     pub started_at: Option<Box<str>>,
-    /// The time and date at which this Race was most recently modified on Splits.io. This field
+    /// The time and date at which this Race was most recently modified on splits.io. This field
     /// conforms to ISO 8601.
     pub updated_at: Box<str>,
     /// The permission set for the Race.
@@ -328,7 +328,7 @@ pub struct Race {
 pub struct Attachment {
     /// The unique ID of the attachment.
     pub id: Uuid,
-    /// The time and date at which this attachment was created on Splits.io. This field conforms to ISO 8601.
+    /// The time and date at which this attachment was created on splits.io. This field conforms to ISO 8601.
     pub created_at: Box<str>,
     /// The filename of the attachment.
     pub filename: Box<str>,

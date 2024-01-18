@@ -3,18 +3,20 @@
     clippy::correctness,
     clippy::perf,
     clippy::style,
+    clippy::missing_const_for_fn,
+    clippy::undocumented_unsafe_blocks,
     missing_docs,
     rust_2018_idioms
 )]
 
-//! splits-io-api is a library that provides bindings for the Splits.io API for Rust.
+//! splits-io-api is a library that provides bindings for the splits.io API for Rust.
 //!
 //! ```no_run
 //! # use splits_io_api::{Client, Runner};
 //! # use anyhow::Context;
 //! #
 //! # async fn query_api() -> anyhow::Result<()> {
-//! // Create a Splits.io API client.
+//! // Create a splits.io API client.
 //! let client = Client::new();
 //!
 //! // Search for a runner.
@@ -54,11 +56,9 @@
 //! # }
 //! ```
 
-use crate::platform::{recv_reader, Body};
-use http::{header::AUTHORIZATION, Request, Response, StatusCode};
-use snafu::ResultExt;
+use std::fmt;
 
-mod platform;
+use reqwest::{header::AUTHORIZATION, RequestBuilder, Response, StatusCode};
 
 pub mod category;
 // pub mod event;
@@ -72,17 +72,28 @@ pub use schema::*;
 
 pub use uuid;
 
-/// A client that can access the Splits.io API. This includes an access token that is used for
+/// A client that can access the splits.io API. This includes an access token that is used for
 /// authentication to all API endpoints.
 pub struct Client {
-    client: platform::Client,
+    client: reqwest::Client,
     access_token: Option<String>,
 }
 
 impl Default for Client {
     fn default() -> Self {
+        #[allow(unused_mut)]
+        let mut builder = reqwest::Client::builder();
+        #[cfg(not(target_family = "wasm"))]
+        {
+            builder = builder.http2_prior_knowledge();
+            #[cfg(feature = "rustls")]
+            {
+                builder = builder.use_rustls_tls();
+            }
+        }
+
         Client {
-            client: platform::Client::new(),
+            client: builder.build().unwrap(),
             access_token: None,
         }
     }
@@ -103,17 +114,15 @@ impl Client {
     }
 }
 
-#[derive(Debug, snafu::Snafu)]
+#[derive(Debug)]
 /// An error when making an API request.
 pub enum Error {
     /// An HTTP error outside of the API.
-    #[snafu(display("HTTP Status: {}", status.canonical_reason().unwrap_or_else(|| status.as_str())))]
     Status {
         /// The HTTP status code of the error.
         status: StatusCode,
     },
     /// An error thrown by the API.
-    #[snafu(display("{}", message))]
     Api {
         /// The HTTP status code of the error.
         status: StatusCode,
@@ -123,44 +132,72 @@ pub enum Error {
     /// Failed downloading the response.
     Download {
         /// The reason why downloading the response failed.
-        source: crate::platform::Error,
-    },
-    /// Failed to parse the response.
-    Json {
-        /// The reason why parsing the response failed.
-        source: serde_json::Error,
+        source: reqwest::Error,
     },
     /// The resource can not be sufficiently identified for finding resources
     /// attached to it.
     UnidentifiableResource,
 }
 
-async fn get_response_unchecked(
-    client: &Client,
-    mut request: Request<Body>,
-) -> Result<Response<Body>, Error> {
-    // FIXME: Only for requests that need it.
-    if let Some(access_token) = &client.access_token {
-        // FIXME: Don't ignore error.
-        if let Ok(access_token) = access_token.parse() {
-            request.headers_mut().insert(AUTHORIZATION, access_token);
+impl fmt::Display for Error {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Error::Status { status } => {
+                write!(
+                    fmt,
+                    "HTTP Status: {}",
+                    status.canonical_reason().unwrap_or_else(|| status.as_str()),
+                )
+            }
+            Error::Api { message, .. } => fmt::Display::fmt(message, fmt),
+            Error::Download { .. } => {
+                fmt::Display::fmt("Failed downloading the response.", fmt)
+            }
+            Error::UnidentifiableResource => {
+                fmt::Display::fmt(
+                    "The resource can not be sufficiently identified for finding resources attached to it.",
+                    fmt,
+                )
+            }
         }
     }
-
-    client.client.request(request).await.context(DownloadSnafu)
 }
 
-async fn get_response(client: &Client, request: Request<Body>) -> Result<Response<Body>, Error> {
+impl std::error::Error for Error {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Error::Status { .. } => None,
+            Error::Api { .. } => None,
+            Error::Download { source, .. } => Some(source),
+            Error::UnidentifiableResource => None,
+        }
+    }
+}
+
+async fn get_response_unchecked(
+    client: &Client,
+    mut request: RequestBuilder,
+) -> Result<Response, Error> {
+    // FIXME: Only for requests that need it.
+    if let Some(access_token) = &client.access_token {
+        request = request.header(AUTHORIZATION, access_token);
+    }
+
+    request
+        .send()
+        .await
+        .map_err(|source| Error::Download { source })
+}
+
+async fn get_response(client: &Client, request: RequestBuilder) -> Result<Response, Error> {
     let response = get_response_unchecked(client, request).await?;
     let status = response.status();
     if !status.is_success() {
-        if let Ok(reader) = recv_reader(response.into_body()).await {
-            if let Ok(error) = serde_json::from_reader::<_, ApiError>(reader) {
-                return Err(Error::Api {
-                    status,
-                    message: error.error,
-                });
-            }
+        if let Ok(error) = response.json::<ApiError>().await {
+            return Err(Error::Api {
+                status,
+                message: error.error,
+            });
         }
         return Err(Error::Status { status });
     }
@@ -169,13 +206,13 @@ async fn get_response(client: &Client, request: Request<Body>) -> Result<Respons
 
 async fn get_json<T: serde::de::DeserializeOwned>(
     client: &Client,
-    request: Request<Body>,
+    request: RequestBuilder,
 ) -> Result<T, Error> {
     let response = get_response(client, request).await?;
-    let reader = recv_reader(response.into_body())
+    response
+        .json()
         .await
-        .context(DownloadSnafu)?;
-    serde_json::from_reader(reader).context(JsonSnafu)
+        .map_err(|source| Error::Download { source })
 }
 
 #[derive(serde_derive::Deserialize)]

@@ -1,17 +1,17 @@
-# <img src="https://raw.githubusercontent.com/glacials/splits-io/dec549110968c5a02df87cddff49a43549cceb92/public/logo.png" alt="Splits.io" height="42" width="42" align="top"/> splits-io-api
+# <img src="https://raw.githubusercontent.com/glacials/splits-io/dec549110968c5a02df87cddff49a43549cceb92/public/logo.png" alt="splits.io" height="42" width="42" align="top"/> splits-io-api
 
 [![Build Status](https://github.com/LiveSplit/splits-io-api/workflows/Rust/badge.svg)](https://github.com/LiveSplit/splits-io-api/actions)
 [![crates.io](https://img.shields.io/crates/v/splits-io-api.svg)](https://crates.io/crates/splits-io-api)
 [![docs.rs](https://docs.rs/splits-io-api/badge.svg)](https://docs.rs/splits-io-api/)
 [![dependency status](https://deps.rs/repo/github/LiveSplit/splits-io-api/status.svg)](https://deps.rs/repo/github/LiveSplit/splits-io-api)
 
-Bindings to the Splits.io API for Rust. Both native platforms and the web are
+Bindings to the splits.io API for Rust. Both native platforms and the web are
 supported.
 
 ## Example Usage
 
 ```rust
-// Create a Splits.io API client.
+// Create a splits.io API client.
 let client = Client::new();
 
 // Search for a runner.
