@@ -1,19 +1,18 @@
 //! The runner module handles retrieving Runners. A Runner is a user with at least one Run tied to
-//! their Splits.io account.
+//! their splits.io account.
 //!
 //! [API Documentation](https://github.com/glacials/splits-io/blob/master/docs/api.md#runner)
 
+use reqwest::Url;
+
 use crate::{
     get_json,
-    platform::Body,
     wrapper::{
         ContainsCategories, ContainsGames, ContainsPBs, ContainsRunner, ContainsRunners,
         ContainsRuns,
     },
     Category, Client, Error, Game, Run, Runner,
 };
-use http::Request;
-use url::Url;
 
 impl Runner {
     /// Searches for a Runner based on the name of the runner.
@@ -57,24 +56,15 @@ pub async fn search(client: &Client, name: &str) -> Result<Vec<Runner>, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/runners").unwrap();
     url.query_pairs_mut().append_pair("search", name);
 
-    let ContainsRunners { runners } = get_json(
-        client,
-        Request::get(url.as_str()).body(Body::empty()).unwrap(),
-    )
-    .await?;
+    let ContainsRunners { runners } = get_json(client, client.client.get(url)).await?;
 
     Ok(runners)
 }
 
 /// Gets the Runner that is associated with the current user.
 pub async fn myself(client: &Client) -> Result<Runner, Error> {
-    let ContainsRunner { runner } = get_json(
-        client,
-        Request::get("https://splits.io/api/v4/runner")
-            .body(Body::empty())
-            .unwrap(),
-    )
-    .await?;
+    let ContainsRunner { runner } =
+        get_json(client, client.client.get("https://splits.io/api/v4/runner")).await?;
 
     Ok(runner)
 }
@@ -84,11 +74,7 @@ pub async fn get(client: &Client, name: &str) -> Result<Runner, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/runners").unwrap();
     url.path_segments_mut().unwrap().push(name);
 
-    let ContainsRunner { runner } = get_json(
-        client,
-        Request::get(url.as_str()).body(Body::empty()).unwrap(),
-    )
-    .await?;
+    let ContainsRunner { runner } = get_json(client, client.client.get(url)).await?;
 
     Ok(runner)
 }
@@ -98,11 +84,7 @@ pub async fn get_runs(client: &Client, name: &str) -> Result<Vec<Run>, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/runners").unwrap();
     url.path_segments_mut().unwrap().extend(&[name, "runs"]);
 
-    let ContainsRuns { runs } = get_json(
-        client,
-        Request::get(url.as_str()).body(Body::empty()).unwrap(),
-    )
-    .await?;
+    let ContainsRuns { runs } = get_json(client, client.client.get(url)).await?;
 
     Ok(runs)
 }
@@ -112,11 +94,7 @@ pub async fn get_pbs(client: &Client, name: &str) -> Result<Vec<Run>, Error> {
     let mut url = Url::parse("https://splits.io/api/v4/runners").unwrap();
     url.path_segments_mut().unwrap().extend(&[name, "pbs"]);
 
-    let ContainsPBs { pbs } = get_json(
-        client,
-        Request::get(url.as_str()).body(Body::empty()).unwrap(),
-    )
-    .await?;
+    let ContainsPBs { pbs } = get_json(client, client.client.get(url)).await?;
 
     Ok(pbs)
 }
@@ -126,11 +104,7 @@ pub async fn get_games(client: &Client, name: &str) -> Result<Vec<Game>, Error> 
     let mut url = Url::parse("https://splits.io/api/v4/runners").unwrap();
     url.path_segments_mut().unwrap().extend(&[name, "games"]);
 
-    let ContainsGames { games } = get_json(
-        client,
-        Request::get(url.as_str()).body(Body::empty()).unwrap(),
-    )
-    .await?;
+    let ContainsGames { games } = get_json(client, client.client.get(url)).await?;
 
     Ok(games)
 }
@@ -142,11 +116,7 @@ pub async fn get_categories(client: &Client, name: &str) -> Result<Vec<Category>
         .unwrap()
         .extend(&[name, "categories"]);
 
-    let ContainsCategories { categories } = get_json(
-        client,
-        Request::get(url.as_str()).body(Body::empty()).unwrap(),
-    )
-    .await?;
+    let ContainsCategories { categories } = get_json(client, client.client.get(url)).await?;
 
     Ok(categories)
 }

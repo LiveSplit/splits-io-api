@@ -2,27 +2,23 @@
 //!
 //! [API Documentation](https://github.com/glacials/splits-io/blob/master/docs/api.md#run)
 
-use crate::{
-    get_json, get_response,
-    platform::{recv_bytes, Body},
-    schema::Run,
-    wrapper::ContainsRun,
-    Client, DownloadSnafu, Error, UnidentifiableResourceSnafu,
+use crate::{get_json, get_response, schema::Run, wrapper::ContainsRun, Client, Error};
+use reqwest::{
+    header::ACCEPT,
+    multipart::{Form, Part},
+    Url,
 };
-use http::{header::CONTENT_TYPE, Request};
-use snafu::{OptionExt, ResultExt};
 use std::{
     io::{self, Write},
     ops::Deref,
 };
-use url::Url;
 
 impl Run {
     /// Downloads the splits for the Run.
     pub async fn download(&self, client: &Client) -> Result<impl Deref<Target = [u8]>, Error> {
         self::download(
             client,
-            self.id.as_ref().context(UnidentifiableResourceSnafu)?,
+            self.id.as_deref().ok_or(Error::UnidentifiableResource)?,
         )
         .await
     }
@@ -32,17 +28,9 @@ impl Run {
         self::get(client, id, historic).await
     }
 
-    /// Uploads a run to Splits.io.
-    pub async fn upload(client: &Client, run: &[u8]) -> Result<UploadedRun, Error> {
+    /// Uploads a run to splits.io.
+    pub async fn upload(client: &Client, run: Vec<u8>) -> Result<UploadedRun, Error> {
         self::upload(client, run).await
-    }
-
-    /// Uploads a run to Splits.io by using a RunWriter in order to write the request body.
-    pub async fn upload_lazy<E: std::error::Error>(
-        client: &Client,
-        write_run: impl FnOnce(&mut RunWriter) -> Result<(), E>,
-    ) -> Result<UploadedRun, Error> {
-        self::upload_lazy(client, write_run).await
     }
 
     /// Retrieves the public URL of the run. This may fail if the run is unidentifiable.
@@ -50,7 +38,7 @@ impl Run {
         let mut url = Url::parse("https://splits.io").unwrap();
         url.path_segments_mut()
             .unwrap()
-            .push(self.id.as_ref().context(UnidentifiableResourceSnafu)?);
+            .push(self.id.as_deref().ok_or(Error::UnidentifiableResource)?);
         Ok(url)
     }
 }
@@ -60,18 +48,17 @@ pub async fn download(client: &Client, id: &str) -> Result<impl Deref<Target = [
     let mut url = Url::parse("https://splits.io/api/v4/runs").unwrap();
     url.path_segments_mut().unwrap().push(id);
 
-    let response = get_response(
+    get_response(
         client,
-        Request::get(url.as_str())
-            .header("Accept", "application/original-timer")
-            .body(Body::empty())
-            .unwrap(),
+        client
+            .client
+            .get(url)
+            .header(ACCEPT, "application/original-timer"),
     )
-    .await?;
-
-    recv_bytes(response.into_body())
-        .await
-        .context(DownloadSnafu)
+    .await?
+    .bytes()
+    .await
+    .map_err(|source| Error::Download { source })
 }
 
 /// Gets a Run.
@@ -82,11 +69,7 @@ pub async fn get(client: &Client, id: &str, historic: bool) -> Result<Run, Error
         url.query_pairs_mut().append_pair("historic", "1");
     }
 
-    let ContainsRun { run } = get_json(
-        client,
-        Request::get(url.as_str()).body(Body::empty()).unwrap(),
-    )
-    .await?;
+    let ContainsRun { run } = get_json(client, client.client.get(url)).await?;
 
     Ok(run)
 }
@@ -118,7 +101,7 @@ struct PresignedRequestFields {
     signature: Box<str>,
 }
 
-/// A run that was uploaded to Splits.io.
+/// A run that was uploaded to splits.io.
 #[derive(Debug)]
 pub struct UploadedRun {
     /// The unique ID for identifying the run.
@@ -161,73 +144,28 @@ impl Write for RunWriter {
     }
 }
 
-/// Uploads a run to Splits.io.
-pub async fn upload(client: &Client, run: &[u8]) -> Result<UploadedRun, Error> {
-    upload_lazy(client, |writer| writer.write_all(run)).await
-}
-
-/// Uploads a run to Splits.io by using a RunWriter in order to write the request body.
-pub async fn upload_lazy<E: std::error::Error>(
-    client: &Client,
-    write_run: impl FnOnce(&mut RunWriter) -> Result<(), E>,
-) -> Result<UploadedRun, Error> {
+/// Uploads a run to splits.io.
+pub async fn upload(client: &Client, run: Vec<u8>) -> Result<UploadedRun, Error> {
     let UploadResponse {
         id,
         claim_token,
         presigned_request: PresignedRequest { uri, fields },
-    } = get_json(
-        client,
-        Request::post("https://splits.io/api/v4/runs")
-            .body(Body::empty())
-            .unwrap(),
-    )
-    .await?;
-    // FIXME: Unwrap
-
-    let mut body = Vec::new();
-
-    write_key_and_value(&mut body, "key", &fields.key);
-    write_key_and_value(&mut body, "policy", &fields.policy);
-    write_key_and_value(&mut body, "x-amz-credential", &fields.credential);
-    write_key_and_value(&mut body, "x-amz-algorithm", &fields.algorithm);
-    write_key_and_value(&mut body, "x-amz-date", &fields.date);
-    write_key_and_value(&mut body, "x-amz-signature", &fields.signature);
-
-    write!(
-        &mut body,
-        "------WebKitFormBoundarymfBzYhzpfnJqay4s\r\nContent-Disposition: form-data; name=\"file\"\r\n\r\n"
-    )
-    .unwrap();
-    let mut writer = RunWriter(body);
-    write_run(&mut writer).unwrap();
-
-    let mut body = writer.0;
-    write!(
-        &mut body,
-        "\r\n------WebKitFormBoundarymfBzYhzpfnJqay4s--\r\n"
-    )
-    .unwrap();
+    } = get_json(client, client.client.post("https://splits.io/api/v4/runs")).await?;
 
     get_response(
         client,
-        Request::post(&*uri)
-            .header(
-                CONTENT_TYPE,
-                "multipart/form-data; boundary=----WebKitFormBoundarymfBzYhzpfnJqay4s",
-            )
-            .body(Body::from(body))
-            .unwrap(),
+        client.client.post(String::from(uri)).multipart(
+            Form::new()
+                .text("key", String::from(fields.key))
+                .text("policy", String::from(fields.policy))
+                .text("x-amz-credential", String::from(fields.credential))
+                .text("x-amz-algorithm", String::from(fields.algorithm))
+                .text("x-amz-date", String::from(fields.date))
+                .text("x-amz-signature", String::from(fields.signature))
+                .part("file", Part::bytes(run)),
+        ),
     )
     .await?;
 
     Ok(UploadedRun { id, claim_token })
-}
-
-fn write_key_and_value(w: &mut impl Write, key: &str, value: &str) {
-    write!(
-        w,
-        "------WebKitFormBoundarymfBzYhzpfnJqay4s\r\nContent-Disposition: form-data; name=\"{}\"\r\n\r\n{}\r\n",
-        key, value,
-    )
-    .unwrap();
 }
